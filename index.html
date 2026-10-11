@@ -2398,8 +2398,15 @@
         }
 
         function handleKaosExcelUpload(event) {
-            const file = event.target.files[0];
+            const inputEl = event.target;
+            const file = inputEl.files[0];
             if (!file) return;
+
+            if (typeof XLSX === 'undefined') {
+                showToast("Library Excel (SheetJS) belum termuat. Periksa koneksi internet.", "error");
+                inputEl.value = "";
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -2410,49 +2417,143 @@
                     const worksheet = workbook.Sheets[firstSheet];
                     
                     const json = XLSX.utils.sheet_to_json(worksheet, {header: 1}); 
-                    
+                    if (!json || json.length === 0) {
+                        showToast("File Excel kosong!", "warning");
+                        inputEl.value = "";
+                        return;
+                    }
+
+                    // ============================================================
+                    // SMART COLUMN & HEADER DETECTION
+                    // ============================================================
+                    let headerRowIndex = -1;
+                    let colName = -1;
+                    let colGender = -1;
+                    let colKelas = -1;
+                    let colSize = -1;
+
+                    // Scan 10 baris pertama untuk mencari baris header
+                    for (let r = 0; r < Math.min(json.length, 10); r++) {
+                        const row = json[r];
+                        if (!row || !Array.isArray(row)) continue;
+
+                        for (let c = 0; c < row.length; c++) {
+                            const val = String(row[c] || '').trim().toLowerCase();
+                            if (!val) continue;
+
+                            if (val.includes('nama') || val.includes('siswa') || val.includes('peserta')) {
+                                colName = c;
+                            } else if (val === 'l/p' || val === 'lp' || val.includes('kelamin') || val.includes('gender') || val === 'jk') {
+                                colGender = c;
+                            } else if (val.includes('kelas') || val === 'kls') {
+                                colKelas = c;
+                            } else if (val.includes('ukuran') || val.includes('kaos') || val.includes('size')) {
+                                colSize = c;
+                            }
+                        }
+
+                        if (colName !== -1) {
+                            headerRowIndex = r;
+                            break;
+                        }
+                    }
+
+                    // Fallback posisi kolom jika header tidak terdeteksi otomatis
+                    if (colName === -1) colName = 1;
+                    if (colGender === -1) colGender = 2;
+                    // Di format user: D (idx 3) = Ukuran Kaos, E (idx 4) = Kelas
+                    if (colKelas === -1) colKelas = (json[0] && json[0].length >= 5) ? 4 : 3;
+                    if (colSize === -1) colSize = 3;
+
+                    const startRow = (headerRowIndex !== -1) ? headerRowIndex + 1 : 0;
                     let addedCount = 0;
-                    
-                    for (let i = 1; i < json.length; i++) {
+                    let updatedCount = 0;
+                    let detectedClass = null;
+
+                    for (let i = startRow; i < json.length; i++) {
                         const row = json[i];
                         if (!row || row.length === 0) continue; 
 
-                        let name = row[1] ? String(row[1]).trim() : '';
+                        let name = (colName !== -1 && row[colName] !== undefined) ? String(row[colName]).trim() : '';
                         if (!name) continue;
 
-                        let gender = row[2] ? String(row[2]).trim().toUpperCase() : '';
+                        // Abaikan jika ternyata masih baris header yang terbaca
+                        if (name.toLowerCase() === 'nama siswa' || name.toLowerCase() === 'nama' || name.toLowerCase() === 'nama peserta') continue;
+
+                        let gender = (colGender !== -1 && row[colGender] !== undefined) ? String(row[colGender]).trim().toUpperCase() : '';
                         if (gender !== 'L' && gender !== 'P') gender = '';
 
-                        // Kolom 4 di Excel: Kelas (contoh: 8A, 8B, dst.)
-                        let rowClass = row[3] ? String(row[3]).trim().toUpperCase().replace(/[^0-9A-Z]/g, '') : '';
-                        let targetClass = kaosClasses.find(c => c.toUpperCase() === rowClass);
+                        // Ambil Kelas dari kolom kelas, atau cari di kolom lain jika ada 8A-8J
+                        let rawClass = (colKelas !== -1 && row[colKelas] !== undefined) ? String(row[colKelas]).trim().toUpperCase().replace(/[^0-9A-Z]/g, '') : '';
+                        let targetClass = kaosClasses.find(c => c.toUpperCase() === rawClass);
+                        
+                        // Jika kolom kelas tidak ada, periksa seluruh kolom baris apakah ada tulisan '8A', '8B', dst
+                        if (!targetClass) {
+                            for (let c = 0; c < row.length; c++) {
+                                let cVal = String(row[c] || '').trim().toUpperCase().replace(/[^0-9A-Z]/g, '');
+                                let match = kaosClasses.find(cl => cl.toUpperCase() === cVal);
+                                if (match) {
+                                    targetClass = match;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Jika tetap tidak ketemu, masukkan ke tab kelas yang sedang aktif
                         if (!targetClass) {
                             targetClass = (currentKaosClass !== 'REKAP') ? currentKaosClass : '8A';
                         }
+                        detectedClass = targetClass;
 
-                        // Ukuran dibiarkan kosong untuk diisi/diedit manual nanti
-                        kaosData.push({
-                            id: generateId(),
-                            className: targetClass,
-                            name: name,
-                            gender: gender,
-                            size: ''
-                        });
-                        addedCount++;
+                        // Ambil Ukuran jika ada isinya
+                        let size = '';
+                        if (colSize !== -1 && row[colSize] !== undefined) {
+                            let rawSize = String(row[colSize]).trim().toUpperCase();
+                            if (validKaosSizes.includes(rawSize)) {
+                                size = rawSize;
+                            }
+                        }
+
+                        // Update atau tambahkan data siswa
+                        const existingIdx = kaosData.findIndex(k => k.className === targetClass && k.name.toLowerCase() === name.toLowerCase());
+                        if (existingIdx !== -1) {
+                            if (gender) kaosData[existingIdx].gender = gender;
+                            if (size) kaosData[existingIdx].size = size;
+                            updatedCount++;
+                        } else {
+                            kaosData.push({
+                                id: generateId(),
+                                className: targetClass,
+                                name: name,
+                                gender: gender,
+                                size: size
+                            });
+                            addedCount++;
+                        }
                     }
 
-                    if (addedCount > 0) {
+                    if (addedCount > 0 || updatedCount > 0) {
                         saveKaosToLocalStorage();
+
+                        // Otomatis buka tab kelas yang baru saja di-upload agar langsung terlihat
+                        if (detectedClass && currentKaosClass !== detectedClass && currentKaosClass !== 'REKAP') {
+                            currentKaosClass = detectedClass;
+                            renderKaosTabs();
+                        }
+
                         renderKaosTable();
-                        showToast(`Berhasil mengimpor ${addedCount} data siswa. Ukuran kaos siap diedit manual.`, 'success');
+                        let msg = `Berhasil memproses data siswa! (${addedCount} siswa baru ditambahkan`;
+                        if (updatedCount > 0) msg += `, ${updatedCount} diperbarui`;
+                        msg += `). Ukuran kaos siap diedit/diisi manual.`;
+                        showToast(msg, 'success');
                     } else {
-                        showToast("Tidak ada data valid. Format Excel: No | Nama Siswa | L/P | Kelas", 'warning');
+                        showToast("Tidak ada data valid yang terbaca. Pastikan terdapat kolom Nama Siswa.", 'warning');
                     }
                 } catch (error) {
-                    showToast("Terjadi kesalahan saat membaca file Excel Kaos.", 'error');
+                    showToast("Terjadi kesalahan saat membaca file Excel Kaos: " + error.message, 'error');
                     console.error("Kaos Excel upload error:", error);
                 }
-                event.target.value = "";
+                inputEl.value = "";
             };
             reader.readAsArrayBuffer(file);
         }
