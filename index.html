@@ -399,6 +399,9 @@
                     <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
                         <h3 class="text-lg font-bold text-slate-800" id="current-kaos-class-title">Kelas 8A</h3>
                         <div class="flex flex-wrap gap-2">
+                            <button onclick="deleteAllKaosByClass()" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition border border-red-200 font-medium text-sm flex items-center">
+                                <i class="fa-solid fa-trash-can mr-2"></i> Hapus Semua
+                            </button>
                             <!-- Input Upload Excel Kaos (Hidden) -->
                             <input type="file" id="excel-upload-kaos" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleKaosExcelUpload(event)">
                             
@@ -1715,6 +1718,25 @@
                     saveKaosToLocalStorage();
                     renderKaosTable();
                     showToast("Data kaos dihapus.", "success");
+                }
+            );
+        }
+
+        function deleteAllKaosByClass() {
+            const classData = kaosData.filter(k => k.className === currentKaosClass);
+            if(classData.length === 0) {
+                showToast(`Belum ada data kaos di Kelas ${currentKaosClass} untuk dihapus.`, "warning");
+                return;
+            }
+
+            showConfirm(
+                "Hapus Semua Kaos Kelas",
+                `Anda yakin ingin menghapus <b>seluruh data kaos (${classData.length} siswa)</b> di <b>Kelas ${currentKaosClass}</b> secara permanen?`,
+                () => {
+                    kaosData = kaosData.filter(k => k.className !== currentKaosClass);
+                    saveKaosToLocalStorage();
+                    renderKaosTable();
+                    showToast(`Semua data kaos Kelas ${currentKaosClass} telah dihapus.`, "success");
                 }
             );
         }
