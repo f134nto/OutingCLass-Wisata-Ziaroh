@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Manajemen Bus & Kaos Ziarah</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- SheetJS (Library untuk membaca file Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Lebih terang dan bersih */
+        }
+
+        .bus-container {
+            border: 12px solid #cbd5e1;
+            border-radius: 40px 40px 16px 16px;
+            background-color: #ffffff;
+            position: relative;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Tampilan kaca depan bus */
+        .bus-windshield {
+            height: 30px;
+            background: linear-gradient(to bottom, #e0f2fe, #f0f9ff);
+            border-bottom: 4px solid #e2e8f0;
+            border-radius: 20px 20px 0 0;
+            margin: -4px -4px 16px -4px;
+        }
+
+        .seat {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .seat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.15);
+        }
+
+        .seat-filled {
+            background-color: #eff6ff; /* Blue 50 */
+            border-color: #93c5fd;     /* Blue 300 */
+            color: #1e3a8a;            /* Blue 900 */
+        }
+
+        .seat-empty {
+            background-color: #f8fafc;
+            border-color: #e2e8f0;
+            color: #64748b;
+        }
+
+        /* Scrollbar styling */
+        .layout-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .layout-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* Print Media Styles */
+        @media print {
+            body { background-color: white; }
+            .no-print { display: none !important; }
+            .bus-container {
+                border-color: #000;
+                box-shadow: none;
+                margin: 0 auto;
+                max-width: 100%;
+            }
+            .seat-filled {
+                background-color: #e2e8f0 !important;
+                border-color: #000 !important;
+                color: #000 !important;
+            }
+            .seat-empty { border-color: #000 !important; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+        }
+        
+        /* Tab Styles (Modern Burgundy) */
+        .tab-btn { transition: all 0.2s ease; }
+        .tab-active { border-bottom: 3px solid #BB002F; color: #BB002F; font-weight: 700; background-color: #fff; }
+        .tab-inactive { color: #64748b; font-weight: 500; }
+        .tab-inactive:hover { color: #334155; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-slate-800 relative">
+
+    <!-- Container untuk Toast Notifications -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Header: Burgundy Theme -->
+        <div class="no-print mb-6 text-center rounded-2xl shadow-lg overflow-hidden bg-[#BB002F] relative border border-[#900024]">
+            <!-- Header Content -->
+            <div class="relative z-10 p-6 sm:p-8 text-white">
+                <h1 class="text-2xl sm:text-4xl font-extrabold mb-1 tracking-tight">
+                    Outing Class Ziarah Wisata Banyumas - Malang
+                </h1>
+                <p class="text-xl sm:text-2xl font-bold text-white/90 mb-6" id="active-bus-title">BIS 1</p>
+                
+                <div id="bus-stats" class="flex flex-wrap justify-center gap-4 text-sm font-medium mb-6">
+                    <div class="flex items-center bg-black/20 backdrop-blur px-4 py-2.5 rounded-lg border border-white/10 text-slate-100 shadow-sm">
+                        <div class="w-4 h-4 rounded bg-white border border-white/30 mr-2 opacity-80"></div>
+                        <span>Kursi Kosong: <span id="count-empty" class="font-bold text-base ml-1">52</span></span>
+                    </div>
+                    <div class="flex items-center bg-white text-[#BB002F] px-4 py-2.5 rounded-lg shadow-md border border-white">
+                        <div class="w-4 h-4 rounded bg-[#BB002F] border border-[#900024] mr-2"></div>
+                        <span class="font-semibold">Kursi Terisi: <span id="count-filled" class="font-bold text-base ml-1">0</span></span>
+                    </div>
+                </div>
+
+                <!-- Bus Selector, Rekap Global & Kaos -->
+                <div id="bus-selector" class="flex flex-wrap justify-center gap-3 pt-2">
+                    <!-- Tombol Bis, Rekap Global & Kaos dirender via JS -->
+                </div>
+            </div>
+        </div>
+
+        <div id="bus-specific-view" class="block">
+            <!-- Tabs Navigation -->
+            <div class="no-print flex flex-wrap border-b border-slate-200 mb-6 bg-white rounded-t-xl overflow-hidden shadow-sm">
+                <button onclick="switchTab('denah')" id="btn-tab-denah" class="tab-btn tab-active flex-1 min-w-[120px] py-4 text-center text-sm md:text-base">
+                    <i class="fa-solid fa-map-location-dot mr-2"></i> Denah Bus
+                </button>
+                <button onclick="switchTab('daftar')" id="btn-tab-daftar" class="tab-btn tab-inactive flex-1 min-w-[120px] py-4 text-center text-sm md:text-base">
+                    <i class="fa-solid fa-users-viewfinder mr-2"></i> Daftar Siswa
+                </button>
+                <button onclick="switchTab('kamar')" id="btn-tab-kamar" class="tab-btn tab-inactive flex-1 min-w-[120px] py-4 text-center text-sm md:text-base">
+                    <i class="fa-solid fa-hotel mr-2"></i> Kamar Hotel
+                </button>
+                <button onclick="switchTab('rekap')" id="btn-tab-rekap" class="tab-btn tab-inactive flex-1 min-w-[120px] py-4 text-center text-sm md:text-base">
+                    <i class="fa-solid fa-clipboard-check mr-2"></i> Rekap Peserta
+                </button>
+            </div>
+
+            <!-- TAB 1: DENAH BUS -->
+            <div id="content-denah" class="block">
+                <!-- Action Buttons Denah -->
+                <div class="mb-6 flex flex-wrap justify-center gap-3 no-print">
+                    <button onclick="window.print()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg transition shadow-sm font-medium flex items-center">
+                        <i class="fa-solid fa-print mr-2"></i> Cetak PDF
+                    </button>
+                    <button onclick="exportDenahCSV()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm font-medium flex items-center">
+                        <i class="fa-solid fa-file-excel mr-2"></i> Unduh Excel/CSV
+                    </button>
+                    <button onclick="openClearAllModal()" class="px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition border border-red-200 font-medium flex items-center">
+                        <i class="fa-solid fa-eraser mr-2"></i> Kosongkan Kursi
+                    </button>
+                </div>
+
+                <!-- Print Header -->
+                <div class="hidden print-header">
+                    <h1 class="text-2xl font-bold uppercase mb-1">Outing Class Ziarah Wisata Banyumas - Malang</h1>
+                    <p class="text-lg font-bold mb-2 text-blue-800" id="print-bus-title">BIS 1</p>
+                    <p class="text-gray-600 mb-4">Total 52 Kursi (Konfigurasi 2-2)</p>
+                </div>
+
+                <div class="layout-scroll overflow-x-auto pb-8">
+                    <div class="bus-container min-w-[700px] w-full max-w-[800px] mx-auto p-4 sm:p-6 flex flex-col">
+                        
+                        <!-- Kaca Depan -->
+                        <div class="bus-windshield"></div>
+
+                        <!-- Area Depan -->
+                        <div class="grid grid-cols-5 gap-3 mb-6 items-center">
+                            <div class="col-span-2 flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <div class="flex flex-col items-center justify-center text-slate-400 text-sm">
+                                    <i class="fa-solid fa-door-open text-xl mb-1 text-slate-300"></i>
+                                    <span class="font-semibold text-xs">PINTU DEPAN</span>
+                                </div>
+                                <div class="w-16 h-16 bg-blue-50 border-2 border-blue-200 rounded-lg flex flex-col items-center justify-center text-blue-700 shadow-sm">
+                                    <i class="fa-solid fa-user-tie mb-1"></i>
+                                    <span class="text-xs font-bold">TL</span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-span-1 flex justify-center text-slate-300">
+                                <i class="fa-solid fa-arrow-down"></i>
+                            </div>
+                            
+                            <div class="col-span-2 flex justify-end items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                 <div class="w-16 h-16 bg-slate-700 border-2 border-slate-800 rounded-lg flex flex-col items-center justify-center text-white shadow-sm">
+                                    <i class="fa-solid fa-dharmachakra mb-1 text-lg"></i>
+                                    <span class="text-xs font-bold tracking-wider">SUPIR</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="w-full h-px bg-slate-200 mb-6"></div>
+
+                        <!-- Area Kursi Penumpang (Di-render via JS) -->
+                        <div id="seat-grid" class="flex flex-col gap-3"></div>
+
+                    </div>
+                </div>
+                <p id="hint-text" class="text-center text-slate-400 text-sm mt-4 no-print block">
+                    <i class="fa-solid fa-lightbulb mr-1 text-blue-500"></i> Klik pada kotak kursi di Denah untuk mengisi atau mengedit data siswa secara cepat.
+                </p>
+            </div>
+            
+            <!-- TAB 2: DAFTAR PESERTA -->
+            <div id="content-daftar" class="hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                        <h2 class="text-xl font-bold text-slate-800">
+                            <i class="fa-solid fa-list-ol text-blue-600 mr-2"></i> Data Siswa (<span id="table-bus-title">BIS 1</span>)
+                        </h2>
+                        <div class="flex flex-wrap gap-2 w-full md:w-auto justify-end">
+                            <button onclick="openDeleteAllModal()" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition border border-red-200 font-medium flex items-center justify-center flex-1 md:flex-none text-sm">
+                                <i class="fa-solid fa-users-slash mr-2"></i> Hapus Semua
+                            </button>
+                            <button onclick="exportDaftarCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm font-medium flex items-center justify-center flex-1 md:flex-none text-sm">
+                                <i class="fa-solid fa-file-arrow-down mr-2"></i> Unduh CSV
+                            </button>
+                            <!-- Input Upload Excel (Hidden) -->
+                            <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleExcelUpload(event)">
+                            
+                            <button onclick="document.getElementById('excel-upload').click()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm font-medium flex items-center justify-center flex-1 md:flex-none text-sm">
+                                <i class="fa-solid fa-file-excel mr-2"></i> Upload Excel
+                            </button>
+                            <button onclick="openFormModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-sm font-medium flex items-center justify-center flex-1 md:flex-none text-sm">
+                                <i class="fa-solid fa-user-plus mr-2"></i> Tambah Manual
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-lg border border-slate-200">
+                        <table class="w-full text-left border-collapse min-w-[700px]">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-600 border-b border-slate-200 text-sm">
+                                    <th class="py-3 px-4 font-semibold w-12">No</th>
+                                    <th class="py-3 px-4 font-semibold">Nama Siswa</th>
+                                    <th class="py-3 px-4 font-semibold text-center w-16">L/P</th>
+                                    <th class="py-3 px-4 font-semibold w-32">Kelas</th>
+                                    <th class="py-3 px-4 font-semibold w-48">Status Lunas</th>
+                                    <th class="py-3 px-4 font-semibold text-center w-24">Kursi</th>
+                                    <th class="py-3 px-4 font-semibold text-center w-36">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="participant-table-body" class="divide-y divide-slate-100 text-sm bg-white">
+                                <!-- Baris tabel dirender via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="empty-state" class="hidden flex-col items-center justify-center py-12 text-slate-400">
+                        <i class="fa-solid fa-folder-open text-5xl mb-4 opacity-30 text-blue-300"></i>
+                        <p>Belum ada data siswa. Silakan "Tambah Manual" atau "Upload Excel".</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: KAMAR HOTEL -->
+            <div id="content-kamar" class="hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8 max-w-4xl mx-auto">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 pb-4 border-b border-slate-100 gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">
+                                <i class="fa-solid fa-hotel text-blue-600 mr-2"></i> Pembagian Kamar Hotel (<span id="kamar-bus-title">BIS 1</span>)
+                            </h2>
+                            <p class="text-slate-500 text-sm mt-1">Atur penempatan peserta kamar hotel secara manual (kapasitas fleksibel).</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 no-print">
+                            <button onclick="exportKamarCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm font-medium text-sm flex items-center">
+                                <i class="fa-solid fa-file-arrow-down mr-2"></i> Unduh CSV
+                            </button>
+                            <button onclick="openHotelModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-sm font-medium text-sm flex items-center">
+                                <i class="fa-solid fa-user-plus mr-2"></i> Tambah Anggota
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="hotel-rooms-container" class="space-y-6">
+                        <!-- Daftar kamar hotel dirender via JS -->
+                    </div>
+
+                    <div id="kamar-empty-state" class="hidden flex-col items-center justify-center py-12 text-slate-400">
+                        <i class="fa-solid fa-bed text-5xl mb-4 opacity-30 text-blue-300"></i>
+                        <p>Belum ada data penempatan kamar hotel untuk bus ini.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: REKAP PESERTA PER BUS -->
+            <div id="content-rekap" class="hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8 max-w-3xl mx-auto">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 border border-blue-100">
+                            <i class="fa-solid fa-clipboard-check text-2xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-800">Rekap Siswa (BIS <span id="rekap-bus-title">1</span>)</h2>
+                        <p class="text-slate-500 mt-1 text-sm">Data siswa yang <b>sudah Lunas</b> dan <b>sudah mendapatkan Kursi</b></p>
+                    </div>
+
+                    <div class="flex justify-end mb-4 no-print">
+                        <button onclick="exportRekapBusCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm font-medium text-sm flex items-center">
+                            <i class="fa-solid fa-file-arrow-down mr-2"></i> Unduh CSV
+                        </button>
+                    </div>
+
+                    <div class="overflow-hidden rounded-lg border border-slate-200">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-700 border-b border-slate-200">
+                                    <th class="py-3 px-4 font-semibold">Kelas / Asal</th>
+                                    <th class="py-3 px-4 font-semibold text-center w-40">Jumlah Valid</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rekap-bus-table-body" class="divide-y divide-slate-100 text-sm bg-white">
+                                <!-- Data diisi oleh JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW GLOBAL: REKAP SEMUA ARMADA (BIS 1-7) -->
+        <div id="global-rekap-view" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 pb-6 border-b border-slate-100 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800 mb-2">
+                            <i class="fa-solid fa-chart-pie text-blue-600 mr-2"></i> Rekapitulasi Seluruh Armada
+                        </h2>
+                        <p class="text-slate-500 text-sm">Merekap total siswa dan persebaran kelas dari BIS 1 sampai BIS 7.</p>
+                    </div>
+                    <div class="no-print">
+                        <button onclick="exportRekapGlobalCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm font-medium text-sm flex items-center">
+                            <i class="fa-solid fa-file-arrow-down mr-2"></i> Unduh CSV Global
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-slate-200">
+                    <table class="w-full text-left border-collapse min-w-[700px]">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-700 border-b border-slate-200 text-sm">
+                                <th class="py-4 px-4 font-bold w-24 text-center border-r border-slate-200">Armada</th>
+                                <th class="py-4 px-4 font-bold text-center w-32 border-r border-slate-200">Total Siswa</th>
+                                <th class="py-4 px-4 font-bold">Rincian Per Kelas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rekap-global-table-body" class="divide-y divide-slate-100 text-sm bg-white">
+                            <!-- Baris tabel dirender via JS -->
+                        </tbody>
+                        <tfoot class="bg-slate-800 text-white font-bold">
+                            <tr>
+                                <td class="py-4 px-4 text-right">TOTAL KESELURUHAN:</td>
+                                <td class="py-4 px-4 text-center text-lg text-blue-300"><span id="global-grand-total">0</span> Siswa</td>
+                                <td class="py-4 px-4"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW KAOS (KELAS 8A - 8J & REKAP) -->
+        <div id="kaos-view" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-100 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800 mb-1">
+                            <i class="fa-solid fa-shirt text-blue-600 mr-2"></i> Pendataan Ukuran Kaos
+                        </h2>
+                        <p class="text-slate-500 text-sm">Kelola ukuran kaos per kelas atau lihat rekapitulasi total keseluruhan.</p>
+                    </div>
+                    <div class="no-print">
+                        <button onclick="exportKaosCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm font-medium text-sm flex items-center">
+                            <i class="fa-solid fa-file-arrow-down mr-2"></i> Unduh CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs Kelas 8A - 8J & Rekap Kaos -->
+                <div id="kaos-tabs-container" class="flex flex-wrap gap-2 mb-6 border-b border-slate-200 pb-4 no-print">
+                    <!-- Dirender lewat JS -->
+                </div>
+
+                <!-- KONTEN A: Tabel Kaos per Kelas -->
+                <div id="kaos-class-view" class="block">
+                    <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                        <h3 class="text-lg font-bold text-slate-800" id="current-kaos-class-title">Kelas 8A</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <!-- Input Upload Excel Kaos (Hidden) -->
+                            <input type="file" id="excel-upload-kaos" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleKaosExcelUpload(event)">
+                            
+                            <button onclick="document.getElementById('excel-upload-kaos').click()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm font-medium text-sm flex items-center">
+                                <i class="fa-solid fa-file-excel mr-2"></i> Upload Excel Kaos
+                            </button>
+                            <button onclick="openKaosModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-sm font-medium text-sm flex items-center">
+                                <i class="fa-solid fa-plus mr-2"></i> Tambah Manual
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-lg border border-slate-200 mb-6">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-600 border-b border-slate-200 text-sm">
+                                    <th class="py-3 px-4 font-semibold w-16 text-center">No</th>
+                                    <th class="py-3 px-4 font-semibold">Nama Siswa</th>
+                                    <th class="py-3 px-4 font-semibold text-center w-24">L/P</th>
+                                    <th class="py-3 px-4 font-semibold text-center w-32">Ukuran Kaos</th>
+                                    <th class="py-3 px-4 font-semibold text-center w-32">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kaos-table-body" class="divide-y divide-slate-100 text-sm bg-white">
+                                <!-- Diisi JS -->
+                            </tbody>
+                            <tfoot id="kaos-table-foot" class="bg-slate-50 border-t border-slate-200 font-bold text-slate-800">
+                                <!-- Rekap ukuran di footer -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- KONTEN B: Rekap Keseluruhan Kaos (M, L, XL, dll) -->
+                <div id="kaos-global-view" class="hidden">
+                    <!-- Diisi JS oleh renderGlobalKaosSummary() -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW PENDAMPING -->
+        <div id="pendamping-view" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-100 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800 mb-1">
+                            <i class="fa-solid fa-user-tie text-blue-600 mr-2"></i> Data Pendamping / Guru
+                        </h2>
+                        <p class="text-slate-500 text-sm">Kelola data guru pendamping dan penugasan per armada bus.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 no-print">
+                        <button onclick="exportPendampingCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm font-medium text-sm flex items-center">
+                            <i class="fa-solid fa-file-arrow-down mr-2"></i> Unduh CSV
+                        </button>
+                        <button onclick="openPendampingModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-sm font-medium text-sm flex items-center">
+                            <i class="fa-solid fa-user-plus mr-2"></i> Tambah Pendamping
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-slate-200 mb-6">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 border-b border-slate-200 text-sm">
+                                <th class="py-3 px-4 font-semibold w-16 text-center">No</th>
+                                <th class="py-3 px-4 font-semibold">Nama Pendamping</th>
+                                <th class="py-3 px-4 font-semibold text-center w-24">L/P</th>
+                                <th class="py-3 px-4 font-semibold w-40">No. HP</th>
+                                <th class="py-3 px-4 font-semibold w-32">Penugasan</th>
+                                <th class="py-3 px-4 font-semibold text-center w-32">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendamping-table-body" class="divide-y divide-slate-100 text-sm bg-white">
+                            <!-- Diisi JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Input Peserta -->
+    <div id="input-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform scale-95 transition-transform duration-300 mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-xl font-bold text-slate-800" id="modal-title">Form Data Siswa</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="participant-form" onsubmit="event.preventDefault(); saveSeatData();">
+                <input type="hidden" id="form-id">
+                
+                <div class="mb-4">
+                    <label for="passenger-name" class="block text-sm font-medium text-slate-700 mb-1">Nama Siswa <span class="text-red-500">*</span></label>
+                    <input type="text" id="passenger-name" required placeholder="Masukkan nama siswa..." class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition">
+                </div>
+
+                <div class="mb-4">
+                    <label for="passenger-gender" class="block text-sm font-medium text-slate-700 mb-1">L/P (Jenis Kelamin)</label>
+                    <select id="passenger-gender" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition bg-white">
+                        <option value="">- Pilih L/P -</option>
+                        <option value="L">L (Laki-laki)</option>
+                        <option value="P">P (Perempuan)</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="passenger-class" class="block text-sm font-medium text-slate-700 mb-1">Kelas / Asal</label>
+                    <input type="text" id="passenger-class" placeholder="Contoh: 8A / Umum" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition">
+                </div>
+
+                <div class="mb-4">
+                    <label for="passenger-paid" class="block text-sm font-medium text-slate-700 mb-1">Tanggal Lunas</label>
+                    <input type="date" id="passenger-paid" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition text-slate-700">
+                    <p class="text-xs text-slate-400 mt-1">Kosongkan jika belum melakukan pelunasan</p>
+                </div>
+
+                <div class="mb-6">
+                    <label for="passenger-seat" class="block text-sm font-medium text-slate-700 mb-1">Pilih Nomor Kursi (1-52)</label>
+                    <input type="number" id="passenger-seat" min="1" max="52" placeholder="Kursi aktif jika sudah Lunas" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                    <p class="text-xs text-amber-600 mt-1" id="seat-warning"><i class="fa-solid fa-circle-exclamation"></i> Masukkan Tanggal Lunas terlebih dahulu untuk memilih kursi.</p>
+                </div>
+                
+                <div class="flex justify-between gap-3 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="clearSeatOnly()" id="btn-clear-seat" class="px-3 py-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 transition font-medium hidden text-sm">
+                        Lepas Kursi
+                    </button>
+                    <div class="flex gap-3 ml-auto">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium text-sm">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-sm text-sm">
+                            Simpan Data
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form Penempatan Kamar Hotel -->
+    <div id="hotel-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform scale-95 transition-transform duration-300 mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-xl font-bold text-slate-800" id="hotel-modal-title"><i class="fa-solid fa-bed mr-2 text-blue-600"></i> Tambah Anggota Kamar</h3>
+                <button onclick="closeHotelModal()" class="text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="hotel-form" onsubmit="event.preventDefault(); saveHotelMember();">
+                <input type="hidden" id="hotel-form-id">
+                <div class="mb-4">
+                    <label for="hotel-room-no" class="block text-sm font-medium text-slate-700 mb-1">Nomor Kamar <span class="text-red-500">*</span></label>
+                    <input type="text" id="hotel-room-no" required placeholder="Contoh: 101 atau Kamar A" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition">
+                </div>
+
+                <div class="mb-4">
+                    <label for="hotel-student-select" class="block text-sm font-medium text-slate-700 mb-1">Pilih Siswa (Otomatis isi form)</label>
+                    <select id="hotel-student-select" onchange="fillStudentDataForHotel(this.value)" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition bg-white">
+                        <option value="">-- Pilih dari daftar siswa bus ini --</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="hotel-student-name" class="block text-sm font-medium text-slate-700 mb-1">Nama Siswa <span class="text-red-500">*</span></label>
+                    <input type="text" id="hotel-student-name" required placeholder="Nama lengkap siswa..." class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition">
+                </div>
+
+                <div class="mb-4">
+                    <label for="hotel-student-gender" class="block text-sm font-medium text-slate-700 mb-1">L/P (Jenis Kelamin)</label>
+                    <select id="hotel-student-gender" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition bg-white">
+                        <option value="">- Pilih L/P -</option>
+                        <option value="L">L (Laki-laki)</option>
+                        <option value="P">P (Perempuan)</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="hotel-student-class" class="block text-sm font-medium text-slate-700 mb-1">Kelas / Asal</label>
+                    <input type="text" id="hotel-student-class" placeholder="Contoh: 8A" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition">
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeHotelModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium text-sm">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-sm text-sm">
+                        Simpan Kamar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form Kaos -->
+    <div id="kaos-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform scale-95 transition-transform duration-300 mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-xl font-bold text-slate-800" id="kaos-modal-title"><i class="fa-solid fa-shirt mr-2 text-blue-600"></i> Kelola Ukuran Kaos</h3>
+                <button onclick="closeKaosModal()" class="text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="kaos-form" onsubmit="event.preventDefault(); saveKaosData();">
+                <input type="hidden" id="kaos-form-id">
+                
+                <div class="mb-4">
+                    <label for="kaos-name" class="block text-sm font-medium text-slate-700 mb-1">Nama Siswa <span class="text-red-500">*</span></label>
+                    <input type="text" id="kaos-name" required placeholder="Nama lengkap siswa..." class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition">
+                </div>
+
+                <div class="mb-4">
+                    <label for="kaos-gender" class="block text-sm font-medium text-slate-700 mb-1">L/P (Jenis Kelamin)</label>
+                    <select id="kaos-gender" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition bg-white">
+                        <option value="">- Pilih L/P -</option>
+                        <option value="L">L (Laki-laki)</option>
+                        <option value="P">P (Perempuan)</option>
+                    </select>
+                </div>
+
+                <div class="mb-6">
+                    <label for="kaos-size" class="block text-sm font-medium text-slate-700 mb-1">Ukuran Kaos <span class="text-red-500">*</span></label>
+                    <select id="kaos-size" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition bg-white">
+                        <option value="">- Pilih Ukuran -</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                        <option value="XXL">XXL</option>
+                        <option value="XXXL">XXXL</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeKaosModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium text-sm">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-sm text-sm">
+                        Simpan Kaos
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form Pendamping -->
+    <div id="pendamping-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform scale-95 transition-transform duration-300 mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-xl font-bold text-slate-800" id="pendamping-modal-title"><i class="fa-solid fa-user-tie mr-2 text-blue-600"></i> Kelola Data Pendamping</h3>
+                <button onclick="closePendampingModal()" class="text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="pendamping-form" onsubmit="event.preventDefault(); savePendampingData();">
+                <input type="hidden" id="pendamping-form-id">
+                
+                <div class="mb-4">
+                    <label for="pendamping-name" class="block text-sm font-medium text-slate-700 mb-1">Nama Pendamping <span class="text-red-500">*</span></label>
+                    <input type="text" id="pendamping-name" required placeholder="Nama lengkap pendamping/guru..." class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition">
+                </div>
+
+                <div class="mb-4">
+                    <label for="pendamping-gender" class="block text-sm font-medium text-slate-700 mb-1">L/P (Jenis Kelamin)</label>
+                    <select id="pendamping-gender" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition bg-white">
+                        <option value="">- Pilih L/P -</option>
+                        <option value="L">L (Laki-laki)</option>
+                        <option value="P">P (Perempuan)</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="pendamping-phone" class="block text-sm font-medium text-slate-700 mb-1">Nomor HP</label>
+                    <input type="text" id="pendamping-phone" placeholder="Contoh: 08123456789" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition">
+                </div>
+
+                <div class="mb-6">
+                    <label for="pendamping-assignment" class="block text-sm font-medium text-slate-700 mb-1">Penugasan Bus / Posisi</label>
+                    <select id="pendamping-assignment" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition bg-white">
+                        <option value="Umum/Panitia">Umum / Panitia Inti</option>
+                        <option value="BIS 1">BIS 1</option>
+                        <option value="BIS 2">BIS 2</option>
+                        <option value="BIS 3">BIS 3</option>
+                        <option value="BIS 4">BIS 4</option>
+                        <option value="BIS 5">BIS 5</option>
+                        <option value="BIS 6">BIS 6</option>
+                        <option value="BIS 7">BIS 7</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closePendampingModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium text-sm">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-sm text-sm">
+                        Simpan Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Universal (Menggantikan confirm()) -->
+    <div id="generic-confirm-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden z-[60] flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300 mx-4 text-center">
+            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
+                <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2" id="generic-confirm-title">Konfirmasi</h3>
+            <p class="text-slate-500 mb-6 text-sm" id="generic-confirm-message">Apakah Anda yakin?</p>
+            
+            <div class="flex justify-center gap-3">
+                <button onclick="closeGenericConfirm()" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium flex-1 text-sm">
+                    Batal
+                </button>
+                <button id="generic-confirm-btn" class="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium flex-1 shadow-sm text-sm">
+                    Ya, Lanjutkan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Kosongkan Semua Kursi -->
+    <div id="confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300 mx-4 text-center">
+            <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-100">
+                <i class="fa-solid fa-eraser text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Kosongkan Semua Kursi?</h3>
+            <p class="text-slate-500 mb-6 text-sm">Data siswa pada tabel <b class="text-slate-800">tidak akan dihapus</b>, namun semua nomor kursi di BIS ini akan di-reset menjadi kosong. Lanjutkan?</p>
+            
+            <div class="flex justify-center gap-3">
+                <button onclick="closeClearAllModal()" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium flex-1">
+                    Batal
+                </button>
+                <button onclick="executeClearSeats()" class="px-5 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium flex-1 shadow-sm">
+                    Ya, Reset Kursi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Hapus Semua Peserta -->
+    <div id="delete-all-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300 mx-4 text-center">
+            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
+                <i class="fa-solid fa-users-slash text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Hapus Semua Peserta?</h3>
+            <p class="text-slate-500 mb-6 text-sm">Anda yakin ingin <b class="text-slate-800">menghapus seluruh data siswa beserta kursinya</b> di <span id="delete-modal-bus-title" class="font-bold text-blue-700">BIS</span> ini secara permanen?</p>
+            
+            <div class="flex justify-center gap-3">
+                <button onclick="closeDeleteAllModal()" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium flex-1">
+                    Batal
+                </button>
+                <button onclick="executeDeleteAllParticipants()" class="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium flex-1 shadow-sm">
+                    Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let participants = [];
+        let hotelRooms = []; 
+        let kaosData = [];   
+        let pendampingData = [];
+        let currentBus = 1;
+        const totalBuses = 7;
+        let activeViewMode = 'bus'; 
+        let currentKaosClass = '8A';
+        const kaosClasses = ['8A', '8B', '8C', '8D', '8E', '8F', '8G', '8H', '8I', '8J'];
+        const totalSeats = 52;
+        let currentTab = 'denah'; 
+        let pendingConfirmAction = null;
+        
+        // Load Data dari LocalStorage
+        const savedData = JSON.parse(localStorage.getItem('busZiarahDataV6'));
+        if (savedData) participants = savedData;
+
+        const savedHotel = JSON.parse(localStorage.getItem('hotelRoomsDataV1'));
+        if (savedHotel) hotelRooms = savedHotel;
+
+        const savedKaos = JSON.parse(localStorage.getItem('kaosDataV1'));
+        if (savedKaos) kaosData = savedKaos;
+
+        const savedPendamping = JSON.parse(localStorage.getItem('pendampingDataV1'));
+        if (savedPendamping) pendampingData = savedPendamping;
+
+        // Element DOM Form Utama
+        const formId = document.getElementById('form-id');
+        const formName = document.getElementById('passenger-name');
+        const formGender = document.getElementById('passenger-gender');
+        const formClass = document.getElementById('passenger-class');
+        const formPaid = document.getElementById('passenger-paid');
+        const formSeat = document.getElementById('passenger-seat');
+        const seatWarning = document.getElementById('seat-warning');
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-slate-800';
+            let icon = 'fa-info-circle';
+            
+            if (type === 'success') {
+                bgClass = 'bg-blue-600';
+                icon = 'fa-circle-check';
+            } else if (type === 'error') {
+                bgClass = 'bg-red-600';
+                icon = 'fa-circle-exclamation';
+            } else if (type === 'warning') {
+                bgClass = 'bg-amber-500';
+                icon = 'fa-triangle-exclamation';
+            }
+
+            toast.className = `${bgClass} text-white px-5 py-3.5 rounded-xl shadow-xl border border-white/10 flex items-center gap-3 transform transition-all duration-300 translate-y-[-20px] opacity-0 max-w-sm pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-xl"></i> <p class="text-sm font-medium leading-tight">${message}</p>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-[-20px]');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        function showConfirm(title, message, actionCallback) {
+            document.getElementById('generic-confirm-title').innerText = title;
+            document.getElementById('generic-confirm-message').innerHTML = message;
+            pendingConfirmAction = actionCallback;
+
+            const m = document.getElementById('generic-confirm-modal');
+            m.classList.remove('hidden');
+            setTimeout(() => { 
+                m.classList.remove('opacity-0'); 
+                m.children[0].classList.remove('scale-95'); 
+            }, 10);
+        }
+
+        function closeGenericConfirm() {
+            const m = document.getElementById('generic-confirm-modal');
+            m.classList.add('opacity-0');
+            m.children[0].classList.add('scale-95');
+            setTimeout(() => {
+                m.classList.add('hidden');
+                pendingConfirmAction = null;
+            }, 300);
+        }
+
+        document.getElementById('generic-confirm-btn').addEventListener('click', () => {
+            if(pendingConfirmAction) pendingConfirmAction();
+            closeGenericConfirm();
+        });
+
+        // Event listener untuk disable/enable kursi berdasarkan status lunas
+        formPaid.addEventListener('change', function() {
+            toggleSeatInput(this.value);
+        });
+
+        function toggleSeatInput(isPaid, preserveSeat = false) {
+            if (isPaid) {
+                formSeat.disabled = false;
+                seatWarning.classList.add('hidden');
+            } else {
+                formSeat.disabled = true;
+                if (!preserveSeat) {
+                    formSeat.value = '';
+                }
+                seatWarning.classList.remove('hidden');
+            }
+        }
+
+        function generateId() {
+            return 'id-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        }
+
+        function getParticipantBySeat(seatNum) {
+            return participants.find(p => p.seat === seatNum && p.busId === currentBus);
+        }
+
+        function getParticipantById(id) {
+            return participants.find(p => p.id === id);
+        }
+
+        function renderBusSelector() {
+            const container = document.getElementById('bus-selector');
+            container.innerHTML = '';
+            
+            // Tombol BIS 1 - 7
+            for(let i = 1; i <= totalBuses; i++) {
+                const btn = document.createElement('button');
+                const isActive = (i === currentBus && activeViewMode === 'bus');
+                
+                btn.className = `px-5 py-3 rounded-xl font-bold text-sm sm:text-base whitespace-nowrap transition-all border shadow-sm ${isActive ? 'bg-white text-[#BB002F] border-white scale-105' : 'bg-black/20 text-white border-transparent hover:bg-black/40 backdrop-blur'}`;
+                btn.innerHTML = `<i class="fa-solid fa-bus-simple mr-2"></i> BIS ${i}`;
+                btn.onclick = () => {
+                    activeViewMode = 'bus';
+                    switchBus(i);
+                };
+                container.appendChild(btn);
+            }
+            
+            // Tombol Rekap Global
+            const globalBtn = document.createElement('button');
+            globalBtn.className = `px-5 py-3 rounded-xl font-bold text-sm sm:text-base whitespace-nowrap transition-all border shadow-sm ${activeViewMode === 'global' ? 'bg-white text-[#BB002F] border-white scale-105' : 'bg-black/20 text-white border-transparent hover:bg-black/40 backdrop-blur'}`;
+            globalBtn.innerHTML = `<i class="fa-solid fa-chart-pie mr-2"></i> Rekap Semua`;
+            globalBtn.onclick = () => {
+                activeViewMode = 'global';
+                renderBusSelector();
+                applyGlobalView();
+            };
+            container.appendChild(globalBtn);
+
+            // Tombol Kaos
+            const kaosBtn = document.createElement('button');
+            kaosBtn.className = `px-5 py-3 rounded-xl font-bold text-sm sm:text-base whitespace-nowrap transition-all border shadow-sm ${activeViewMode === 'kaos' ? 'bg-white text-[#BB002F] border-white scale-105' : 'bg-black/20 text-white border-transparent hover:bg-black/40 backdrop-blur'}`;
+            kaosBtn.innerHTML = `<i class="fa-solid fa-shirt mr-2"></i> Data Kaos`;
+            kaosBtn.onclick = () => {
+                activeViewMode = 'kaos';
+                renderBusSelector();
+                applyKaosView();
+            };
+            container.appendChild(kaosBtn);
+
+            // Tombol Pendamping
+            const pendBtn = document.createElement('button');
+            pendBtn.className = `px-5 py-3 rounded-xl font-bold text-sm sm:text-base whitespace-nowrap transition-all border shadow-sm ${activeViewMode === 'pendamping' ? 'bg-white text-[#BB002F] border-white scale-105' : 'bg-black/20 text-white border-transparent hover:bg-black/40 backdrop-blur'}`;
+            pendBtn.innerHTML = `<i class="fa-solid fa-user-tie mr-2"></i> Data Pendamping`;
+            pendBtn.onclick = () => {
+                activeViewMode = 'pendamping';
+                renderBusSelector();
+                applyPendampingView();
+            };
+            container.appendChild(pendBtn);
+        }
+
+        function switchBus(busNumber) {
+            currentBus = busNumber;
+            // Update Title
+            document.getElementById('active-bus-title').innerText = `BIS ${currentBus}`;
+            document.getElementById('print-bus-title').innerText = `BIS ${currentBus}`;
+            document.getElementById('table-bus-title').innerText = `BIS ${currentBus}`;
+            document.getElementById('kamar-bus-title').innerText = `BIS ${currentBus}`;
+            document.getElementById('rekap-bus-title').innerText = currentBus;
+            
+            applyGlobalView(); 
+            renderBusSelector();
+            
+            renderBusLayout();
+            renderTable();
+            renderHotelRooms();
+            renderRekapBus();
+        }
+
+        function applyGlobalView() {
+            const busView = document.getElementById('bus-specific-view');
+            const globalView = document.getElementById('global-rekap-view');
+            const kaosView = document.getElementById('kaos-view');
+            const pendampingView = document.getElementById('pendamping-view');
+            const statsBox = document.getElementById('bus-stats');
+            const mainTitle = document.getElementById('active-bus-title');
+            const hintText = document.getElementById('hint-text');
+
+            if (activeViewMode === 'global') {
+                busView.classList.add('hidden');
+                globalView.classList.remove('hidden');
+                kaosView.classList.add('hidden');
+                pendampingView.classList.add('hidden');
+                statsBox.classList.add('hidden');
+                hintText.classList.add('hidden');
+                mainTitle.innerText = "Rekap Keseluruhan Armada";
+                renderRekapGlobal();
+            } else if (activeViewMode === 'kaos') {
+                busView.classList.add('hidden');
+                globalView.classList.add('hidden');
+                kaosView.classList.remove('hidden');
+                pendampingView.classList.add('hidden');
+                statsBox.classList.add('hidden');
+                hintText.classList.add('hidden');
+                mainTitle.innerText = "Pendataan Ukuran Kaos Siswa";
+                renderKaosTabs();
+                renderKaosTable();
+            } else if (activeViewMode === 'pendamping') {
+                busView.classList.add('hidden');
+                globalView.classList.add('hidden');
+                kaosView.classList.add('hidden');
+                pendampingView.classList.remove('hidden');
+                statsBox.classList.add('hidden');
+                hintText.classList.add('hidden');
+                mainTitle.innerText = "Data Guru Pendamping";
+                renderPendampingTable();
+            } else {
+                busView.classList.remove('hidden');
+                globalView.classList.add('hidden');
+                kaosView.classList.add('hidden');
+                pendampingView.classList.add('hidden');
+                statsBox.classList.remove('hidden');
+                mainTitle.innerText = `BIS ${currentBus}`;
+                switchTab(currentTab);
+            }
+        }
+
+        function applyKaosView() {
+            activeViewMode = 'kaos';
+            renderBusSelector();
+            applyGlobalView();
+        }
+
+        function applyPendampingView() {
+            activeViewMode = 'pendamping';
+            renderBusSelector();
+            applyGlobalView();
+        }
+
+        function switchTab(tabName) {
+            if(activeViewMode !== 'bus') return;
+            
+            currentTab = tabName;
+            
+            const btns = {
+                'denah': document.getElementById('btn-tab-denah'),
+                'daftar': document.getElementById('btn-tab-daftar'),
+                'kamar': document.getElementById('btn-tab-kamar'),
+                'rekap': document.getElementById('btn-tab-rekap')
+            };
+            
+            const contents = {
+                'denah': document.getElementById('content-denah'),
+                'daftar': document.getElementById('content-daftar'),
+                'kamar': document.getElementById('content-kamar'),
+                'rekap': document.getElementById('content-rekap')
+            };
+
+            for (let key in btns) {
+                btns[key].className = 'tab-btn tab-inactive flex-1 min-w-[120px] py-4 text-center text-sm md:text-base';
+                contents[key].classList.add('hidden');
+                contents[key].classList.remove('block');
+            }
+
+            btns[tabName].className = 'tab-btn tab-active flex-1 min-w-[120px] py-4 text-center text-sm md:text-base';
+            contents[tabName].classList.remove('hidden');
+            contents[tabName].classList.add('block');
+            
+            document.getElementById('hint-text').classList.toggle('hidden', tabName !== 'denah');
+
+            if (tabName === 'daftar') renderTable();
+            if (tabName === 'kamar') renderHotelRooms();
+            if (tabName === 'rekap') renderRekapBus();
+            if (tabName === 'denah') renderBusLayout();
+        }
+
+        function renderBusLayout() {
+            const seatGrid = document.getElementById('seat-grid');
+            seatGrid.innerHTML = '';
+            let seatNumber = 1;
+
+            for (let row = 1; row <= 13; row++) {
+                const rowDiv = document.createElement('div');
+
+                if (row === 13) {
+                    rowDiv.className = 'grid grid-cols-6 gap-2 h-20'; 
+                    for (let i = 0; i < 6; i++) {
+                        rowDiv.appendChild(createSeatElement(seatNumber++));
+                    }
+                } 
+                else if (row === 11) {
+                    rowDiv.className = 'grid grid-cols-5 gap-3 h-20';
+                    
+                    const doorDiv = document.createElement('div');
+                    doorDiv.className = 'col-span-2 bg-slate-50 border border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400';
+                    doorDiv.innerHTML = `
+                        <i class="fa-solid fa-door-closed text-2xl mb-1 text-slate-300"></i>
+                        <span class="text-xs font-semibold text-center leading-tight">PINTU<br>BELAKANG</span>
+                    `;
+                    rowDiv.appendChild(doorDiv);
+
+                    rowDiv.appendChild(createAisle());
+                    rowDiv.appendChild(createSeatElement(41)); 
+                    rowDiv.appendChild(createSeatElement(42)); 
+                    seatNumber = 43;
+                } 
+                else if (row === 12) {
+                    rowDiv.className = 'grid grid-cols-5 gap-3 h-20';
+                    rowDiv.appendChild(createSeatElement(43));
+                    rowDiv.appendChild(createSeatElement(44));
+                    rowDiv.appendChild(createAisle());
+                    rowDiv.appendChild(createSeatElement(45));
+                    rowDiv.appendChild(createSeatElement(46));
+                    seatNumber = 47;
+                }
+                else {
+                    rowDiv.className = 'grid grid-cols-5 gap-3 h-20';
+                    rowDiv.appendChild(createSeatElement(seatNumber++));
+                    rowDiv.appendChild(createSeatElement(seatNumber++));
+                    rowDiv.appendChild(createAisle());
+                    rowDiv.appendChild(createSeatElement(seatNumber++));
+                    rowDiv.appendChild(createSeatElement(seatNumber++));
+                }
+
+                seatGrid.appendChild(rowDiv);
+            }
+            updateStatistics();
+        }
+
+        function createSeatElement(number) {
+            const seatContainer = document.createElement('div');
+            const participant = getParticipantBySeat(number);
+            
+            const isFilled = !!participant;
+            const seatClass = isFilled ? 'seat-filled' : 'seat-empty';
+            const passengerName = isFilled ? participant.name : '';
+
+            seatContainer.className = `seat relative flex flex-col items-center justify-center h-full border-2 rounded-xl p-1 overflow-hidden ${seatClass}`;
+            
+            seatContainer.onclick = () => {
+                if (isFilled) openFormModal(participant.id);
+                else openFormModal(null, number);
+            };
+            
+            const numberDiv = document.createElement('div');
+            if (isFilled) {
+                numberDiv.className = 'absolute top-1 left-2 text-[10px] font-bold opacity-70';
+            } else {
+                numberDiv.className = 'text-xl font-bold opacity-30 mb-1';
+            }
+            numberDiv.innerText = number;
+            seatContainer.appendChild(numberDiv);
+
+            if (isFilled) {
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'text-xs font-bold text-center leading-tight mt-3 px-1 break-words w-full line-clamp-2';
+                nameDiv.innerText = passengerName;
+                
+                if (participant.paidDate) {
+                     const paidIcon = document.createElement('i');
+                     paidIcon.className = 'fa-solid fa-circle-check text-blue-600 absolute top-1 right-2 text-[10px]';
+                     seatContainer.appendChild(paidIcon);
+                }
+                seatContainer.appendChild(nameDiv);
+            } else {
+                const iconDiv = document.createElement('i');
+                iconDiv.className = 'fa-solid fa-plus text-xs opacity-20 mt-1';
+                seatContainer.appendChild(iconDiv);
+            }
+            return seatContainer;
+        }
+
+        function createAisle() {
+            const aisleDiv = document.createElement('div');
+            aisleDiv.className = 'col-span-1 flex items-center justify-center';
+            if (Math.random() > 0.6) {
+                 aisleDiv.innerHTML = '<i class="fa-solid fa-arrow-down text-slate-200 text-xs"></i>';
+            }
+            return aisleDiv;
+        }
+
+        function updateStatistics() {
+            const filledCount = participants.filter(p => p.seat !== null && p.seat !== "" && p.busId === currentBus).length;
+            document.getElementById('count-filled').innerText = filledCount;
+            document.getElementById('count-empty').innerText = totalSeats - filledCount;
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById('participant-table-body');
+            const emptyState = document.getElementById('empty-state');
+            tableBody.innerHTML = '';
+            
+            const currentBusParticipants = participants.filter(p => p.busId === currentBus);
+            
+            if (currentBusParticipants.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            }
+            
+            emptyState.classList.remove('flex');
+            emptyState.classList.add('hidden');
+
+            currentBusParticipants.forEach((p, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+                
+                let formattedDate = '-';
+                if (p.paidDate) {
+                    formattedDate = `<span class="inline-flex items-center px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100"><i class="fa-solid fa-check mr-1"></i> Lunas (${p.paidDate})</span>`;
+                } else {
+                    formattedDate = `<span class="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold border border-amber-100"><i class="fa-solid fa-clock mr-1"></i> Belum Lunas</span>`;
+                }
+
+                const seatDisplay = p.seat ? 
+                    `<span class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs mx-auto border border-blue-200">${p.seat}</span>` : 
+                    `<span class="text-slate-400 italic text-xs block text-center">Blm ada</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-slate-500 font-medium">${index + 1}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-800">${p.name}</td>
+                    <td class="py-3 px-4 text-center font-medium text-slate-600">${p.gender || '-'}</td>
+                    <td class="py-3 px-4 text-slate-600">${p.class || '-'}</td>
+                    <td class="py-3 px-4">${formattedDate}</td>
+                    <td class="py-3 px-4 align-middle">${seatDisplay}</td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="openFormModal('${p.id}')" class="px-2.5 py-1.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition border border-blue-100 text-xs font-semibold" title="Edit Data">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteParticipant('${p.id}')" class="px-2.5 py-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 flex items-center justify-center transition border border-red-100 text-xs font-semibold" title="Hapus Data">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function openHotelModal(id = null) {
+            document.getElementById('hotel-form').reset();
+            document.getElementById('hotel-form-id').value = '';
+            document.getElementById('hotel-modal-title').innerHTML = `<i class="fa-solid fa-bed mr-2 text-blue-600"></i> Tambah Anggota Kamar`;
+            
+            const selectEl = document.getElementById('hotel-student-select');
+            selectEl.innerHTML = '<option value="">-- Pilih dari daftar siswa bus ini --</option>';
+            
+            const busStudents = participants.filter(p => p.busId === currentBus);
+            busStudents.forEach(st => {
+                const opt = document.createElement('option');
+                opt.value = st.id;
+                opt.textContent = `${st.name} (${st.class || 'Kelas -'})`;
+                selectEl.appendChild(opt);
+            });
+
+            if(id) {
+                const m = hotelRooms.find(item => item.id === id);
+                if(m) {
+                    document.getElementById('hotel-modal-title').innerHTML = `<i class="fa-solid fa-bed mr-2 text-blue-600"></i> Edit Anggota Kamar Hotel`;
+                    document.getElementById('hotel-form-id').value = m.id;
+                    document.getElementById('hotel-room-no').value = m.roomNo;
+                    document.getElementById('hotel-student-name').value = m.name;
+                    document.getElementById('hotel-student-gender').value = m.gender || '';
+                    document.getElementById('hotel-student-class').value = m.class || '';
+                }
+            }
+
+            const modal = document.getElementById('hotel-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.children[0].classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeHotelModal() {
+            const modal = document.getElementById('hotel-modal');
+            modal.classList.add('opacity-0');
+            modal.children[0].classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function fillStudentDataForHotel(studentId) {
+            if(!studentId) return;
+            const st = getParticipantById(studentId);
+            if(st) {
+                document.getElementById('hotel-student-name').value = st.name;
+                document.getElementById('hotel-student-gender').value = st.gender || '';
+                document.getElementById('hotel-student-class').value = st.class || '';
+            }
+        }
+
+        function saveHotelMember() {
+            const id = document.getElementById('hotel-form-id').value;
+            const roomNo = document.getElementById('hotel-room-no').value.trim();
+            const name = document.getElementById('hotel-student-name').value.trim();
+            const gender = document.getElementById('hotel-student-gender').value;
+            const kelas = document.getElementById('hotel-student-class').value.trim();
+
+            if(!roomNo || !name) return;
+
+            if(id) {
+                const idx = hotelRooms.findIndex(h => h.id === id);
+                if(idx !== -1) {
+                    hotelRooms[idx].roomNo = roomNo;
+                    hotelRooms[idx].name = name;
+                    hotelRooms[idx].gender = gender;
+                    hotelRooms[idx].class = kelas;
+                }
+            } else {
+                hotelRooms.push({
+                    id: generateId(),
+                    busId: currentBus,
+                    roomNo: roomNo,
+                    name: name,
+                    gender: gender,
+                    class: kelas
+                });
+            }
+
+            saveHotelToLocalStorage();
+            renderHotelRooms();
+            closeHotelModal();
+            showToast("Data anggota kamar hotel disimpan.");
+        }
+
+        function deleteHotelMember(id) {
+            showConfirm(
+                "Hapus Anggota Kamar",
+                "Hapus peserta ini dari daftar kamar hotel?",
+                () => {
+                    hotelRooms = hotelRooms.filter(h => h.id !== id);
+                    saveHotelToLocalStorage();
+                    renderHotelRooms();
+                    showToast("Anggota kamar dihapus.", "success");
+                }
+            );
+        }
+
+        function renderHotelRooms() {
+            const container = document.getElementById('hotel-rooms-container');
+            const emptyState = document.getElementById('kamar-empty-state');
+            container.innerHTML = '';
+
+            const currentBusHotel = hotelRooms.filter(h => h.busId === currentBus);
+
+            if (currentBusHotel.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            }
+
+            emptyState.classList.remove('flex');
+            emptyState.classList.add('hidden');
+
+            const groupedRooms = {};
+            currentBusHotel.forEach(member => {
+                if(!groupedRooms[member.roomNo]) {
+                    groupedRooms[member.roomNo] = [];
+                }
+                groupedRooms[member.roomNo].push(member);
+            });
+
+            for (const [roomNo, members] of Object.entries(groupedRooms)) {
+                const roomCard = document.createElement('div');
+                roomCard.className = 'bg-slate-50 border border-slate-200 rounded-xl p-5 shadow-sm';
+
+                let rowsHTML = '';
+                members.forEach((member, idx) => {
+                    rowsHTML += `
+                        <tr class="border-b border-slate-100 hover:bg-white transition">
+                            <td class="py-2.5 px-3 text-slate-500 font-medium w-12 text-center">${idx + 1}</td>
+                            <td class="py-2.5 px-3 font-semibold text-slate-800">${member.name}</td>
+                            <td class="py-2.5 px-3 text-center text-slate-600 w-16">${member.gender || '-'}</td>
+                            <td class="py-2.5 px-3 text-slate-600 w-36">${member.class || '-'}</td>
+                            <td class="py-2.5 px-3 text-center w-24">
+                                <div class="flex justify-center gap-1.5">
+                                    <button onclick="openHotelModal('${member.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold px-2 py-1.5 rounded bg-blue-50 border border-blue-100" title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button onclick="deleteHotelMember('${member.id}')" class="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1.5 rounded bg-red-50 border border-red-100" title="Hapus">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                roomCard.innerHTML = `
+                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
+                        <h3 class="font-bold text-blue-700 text-base flex items-center">
+                            <i class="fa-solid fa-door-open mr-2 text-slate-400"></i> KAMAR NO. ${roomNo}
+                        </h3>
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                            ${members.length} Siswa
+                        </span>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                                    <th class="py-2.5 px-3 font-semibold text-center w-12">No</th>
+                                    <th class="py-2.5 px-3 font-semibold">Nama Siswa</th>
+                                    <th class="py-2.5 px-3 font-semibold text-center w-16">L/P</th>
+                                    <th class="py-2.5 px-3 font-semibold">Kelas</th>
+                                    <th class="py-2.5 px-3 font-semibold text-center w-24">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHTML}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                container.appendChild(roomCard);
+            }
+        }
+
+        function renderRekapBus() {
+            const rekapBody = document.getElementById('rekap-bus-table-body');
+            rekapBody.innerHTML = '';
+
+            const validParticipants = participants.filter(p => p.busId === currentBus && p.seat && p.paidDate);
+
+            if(validParticipants.length === 0) {
+                rekapBody.innerHTML = `<tr><td colspan="2" class="text-center py-6 text-slate-400 italic">Belum ada siswa yang lunas dan memiliki kursi di bus ini.</td></tr>`;
+                return;
+            }
+
+            const grouped = validParticipants.reduce((acc, p) => {
+                const cls = p.class || 'Tanpa Keterangan Kelas';
+                acc[cls] = (acc[cls] || 0) + 1;
+                return acc;
+            }, {});
+
+            let total = 0;
+            for (const [cls, count] of Object.entries(grouped)) {
+                total += count;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-slate-700">${cls}</td>
+                    <td class="py-3 px-4 text-center font-bold text-blue-600 bg-blue-50/50">${count} Siswa</td>
+                `;
+                rekapBody.appendChild(tr);
+            }
+
+            const trTotal = document.createElement('tr');
+            trTotal.className = 'bg-slate-50 font-bold border-t-2 border-slate-200';
+            trTotal.innerHTML = `
+                <td class="py-3 px-4 text-right text-slate-800 uppercase text-xs tracking-wider">Total Peserta Valid:</td>
+                <td class="py-3 px-4 text-center text-blue-700 text-lg">${total} Siswa</td>
+            `;
+            rekapBody.appendChild(trTotal);
+        }
+
+        function renderRekapGlobal() {
+            const rekapBody = document.getElementById('rekap-global-table-body');
+            rekapBody.innerHTML = '';
+            let grandTotal = 0;
+
+            for (let i = 1; i <= totalBuses; i++) {
+                const busData = participants.filter(p => p.busId === i);
+                const totalBus = busData.length;
+                grandTotal += totalBus;
+
+                const grouped = busData.reduce((acc, p) => {
+                    const cls = p.class || 'Tanpa Kelas';
+                    acc[cls] = (acc[cls] || 0) + 1;
+                    return acc;
+                }, {});
+
+                let classDetailsHTML = Object.entries(grouped)
+                    .map(([cls, count]) => `<span class="inline-block bg-white rounded-md px-2.5 py-1 m-1 text-xs font-bold text-slate-700 border border-slate-200 shadow-sm">${cls}: <b>${count}</b></span>`)
+                    .join('');
+
+                if (!classDetailsHTML) classDetailsHTML = '<span class="text-slate-400 italic text-xs">Kosong</span>';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-4 px-4 font-bold text-slate-800 text-center border-r border-slate-100">BIS ${i}</td>
+                    <td class="py-4 px-4 text-center text-blue-700 font-bold text-lg border-r border-slate-100 bg-blue-50/30">${totalBus}</td>
+                    <td class="py-4 px-4 bg-slate-50/50">${classDetailsHTML}</td>
+                `;
+                rekapBody.appendChild(tr);
+            }
+            
+            document.getElementById('global-grand-total').innerText = grandTotal;
+        }
+
+        function renderKaosTabs() {
+            const container = document.getElementById('kaos-tabs-container');
+            container.innerHTML = '';
+
+            // Tab Kelas 8A - 8J
+            kaosClasses.forEach(cls => {
+                const isAct = (cls === currentKaosClass);
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-2 rounded-xl font-bold text-sm transition-all border shadow-sm ${isAct ? 'bg-blue-600 text-white border-blue-600 scale-105' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`;
+                btn.innerHTML = `<i class="fa-solid fa-graduation-cap mr-1"></i> ${cls}`;
+                btn.onclick = () => {
+                    currentKaosClass = cls;
+                    renderKaosTabs();
+                    renderKaosTable();
+                };
+                container.appendChild(btn);
+            });
+
+            // Tab REKAP KAOS (ditempatkan di sebelah kanan)
+            const isRekapAct = (currentKaosClass === 'REKAP');
+            const rekapBtn = document.createElement('button');
+            rekapBtn.className = `px-5 py-2 rounded-xl font-bold text-sm transition-all border shadow-sm ml-auto ${isRekapAct ? 'bg-slate-800 text-white border-slate-800 scale-105' : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'}`;
+            rekapBtn.innerHTML = `<i class="fa-solid fa-chart-column mr-1"></i> Rekap Kaos`;
+            rekapBtn.onclick = () => {
+                currentKaosClass = 'REKAP';
+                renderKaosTabs();
+                renderKaosTable();
+            };
+            container.appendChild(rekapBtn);
+        }
+
+        function renderKaosTable() {
+            const classView = document.getElementById('kaos-class-view');
+            const globalView = document.getElementById('kaos-global-view');
+
+            if (currentKaosClass === 'REKAP') {
+                classView.classList.add('hidden');
+                globalView.classList.remove('hidden');
+                renderGlobalKaosSummary();
+                return;
+            }
+
+            // Normal class view
+            classView.classList.remove('hidden');
+            globalView.classList.add('hidden');
+
+            document.getElementById('current-kaos-class-title').innerText = `Data Ukuran Kaos Kelas ${currentKaosClass}`;
+            const tbody = document.getElementById('kaos-table-body');
+            const tfoot = document.getElementById('kaos-table-foot');
+            tbody.innerHTML = '';
+            tfoot.innerHTML = '';
+
+            const list = kaosData.filter(item => item.className === currentKaosClass);
+
+            if(list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400 italic">Belum ada data kaos untuk Kelas ${currentKaosClass}. Klik "Tambah Manual" atau "Upload Excel Kaos".</td></tr>`;
+                tfoot.innerHTML = `<tr><td colspan="5" class="py-3 px-4 text-center text-slate-500 font-normal">Rekap: M: 0 | L: 0 | XL: 0 | XXL: 0 | XXXL: 0</td></tr>`;
+                return;
+            }
+
+            let counts = { M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0 };
+
+            list.forEach((item, index) => {
+                if(counts[item.size] !== undefined) counts[item.size]++;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center text-slate-500">${index + 1}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-800">${item.name}</td>
+                    <td class="py-3 px-4 text-center text-slate-600">${item.gender || '-'}</td>
+                    <td class="py-3 px-4 text-center"><span class="inline-block px-3 py-1 rounded bg-slate-100 text-slate-800 font-bold border border-slate-200 text-xs min-w-[40px]">${item.size}</span></td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex justify-center gap-1.5">
+                            <button onclick="openKaosModal('${item.id}')" class="px-2.5 py-1.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-semibold border border-blue-100"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteKaosItem('${item.id}')" class="px-2.5 py-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold border border-red-100"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            tfoot.innerHTML = `
+                <tr>
+                    <td colspan="3" class="py-3 px-4 text-right uppercase text-xs tracking-wider text-slate-600">REKAP KELAS ${currentKaosClass}:</td>
+                    <td colspan="2" class="py-3 px-4 text-left text-blue-700 text-sm">
+                        M: <b>${counts.M}</b> | 
+                        L: <b>${counts.L}</b> | 
+                        XL: <b>${counts.XL}</b> | 
+                        XXL: <b>${counts.XXL}</b> | 
+                        XXXL: <b>${counts.XXXL}</b>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function renderGlobalKaosSummary() {
+            const globalView = document.getElementById('kaos-global-view');
+            
+            let counts = { M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0 };
+            let grandTotal = 0;
+
+            kaosData.forEach(item => {
+                if (counts[item.size] !== undefined) {
+                    counts[item.size]++;
+                    grandTotal++;
+                }
+            });
+
+            globalView.innerHTML = `
+                <div class="mb-6 flex flex-col md:flex-row justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-cubes mr-2 text-blue-600"></i> Rekapitulasi Total Ukuran Kaos</h3>
+                        <p class="text-slate-500 text-sm mt-1">Akumulasi seluruh pesanan dari Kelas 8A hingga 8J.</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 text-center">
+                        <span class="block text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Total Keseluruhan</span>
+                        <span class="inline-block px-4 py-2 bg-blue-600 text-white font-black text-xl rounded-lg shadow-sm">${grandTotal} Pcs</span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                    ${Object.entries(counts).map(([size, count]) => `
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm relative overflow-hidden">
+                            <div class="absolute -right-4 -bottom-4 opacity-5 text-6xl font-black text-blue-900"><i class="fa-solid fa-shirt"></i></div>
+                            <div class="text-3xl font-black text-slate-800 mb-1 relative z-10">${size}</div>
+                            <div class="text-sm font-bold text-blue-600 relative z-10">${count} Pcs</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
+                    <table class="w-full text-left border-collapse min-w-[500px]">
+                        <thead>
+                            <tr class="bg-slate-800 text-white border-b border-slate-700 text-sm">
+                                <th class="py-3 px-4 font-semibold w-24">Kelas</th>
+                                <th class="py-3 px-4 font-semibold text-center">M</th>
+                                <th class="py-3 px-4 font-semibold text-center">L</th>
+                                <th class="py-3 px-4 font-semibold text-center">XL</th>
+                                <th class="py-3 px-4 font-semibold text-center">XXL</th>
+                                <th class="py-3 px-4 font-semibold text-center">XXXL</th>
+                                <th class="py-3 px-4 font-semibold text-center bg-slate-900">Total Kelas</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm bg-white">
+                            ${kaosClasses.map(cls => {
+                                const clsData = kaosData.filter(d => d.className === cls);
+                                let c = { M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0 };
+                                clsData.forEach(item => { if(c[item.size] !== undefined) c[item.size]++; });
+                                const rowTotal = clsData.length;
+                                
+                                return `
+                                    <tr class="hover:bg-blue-50/50 transition">
+                                        <td class="py-3 px-4 font-bold text-slate-700 border-r border-slate-100">${cls}</td>
+                                        <td class="py-3 px-4 text-center font-medium">${c.M > 0 ? c.M : '<span class="text-slate-300">-</span>'}</td>
+                                        <td class="py-3 px-4 text-center font-medium">${c.L > 0 ? c.L : '<span class="text-slate-300">-</span>'}</td>
+                                        <td class="py-3 px-4 text-center font-medium">${c.XL > 0 ? c.XL : '<span class="text-slate-300">-</span>'}</td>
+                                        <td class="py-3 px-4 text-center font-medium">${c.XXL > 0 ? c.XXL : '<span class="text-slate-300">-</span>'}</td>
+                                        <td class="py-3 px-4 text-center font-medium">${c.XXXL > 0 ? c.XXXL : '<span class="text-slate-300">-</span>'}</td>
+                                        <td class="py-3 px-4 text-center font-black text-blue-700 bg-blue-50/30 border-l border-slate-100">${rowTotal}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function openKaosModal(id = null) {
+            document.getElementById('kaos-form').reset();
+            document.getElementById('kaos-form-id').value = '';
+            document.getElementById('kaos-modal-title').innerHTML = `<i class="fa-solid fa-shirt mr-2 text-blue-600"></i> Tambah Kaos Kelas ${currentKaosClass}`;
+
+            if(id) {
+                const item = kaosData.find(k => k.id === id);
+                if(item) {
+                    document.getElementById('kaos-modal-title').innerHTML = `<i class="fa-solid fa-shirt mr-2 text-blue-600"></i> Edit Kaos Kelas ${currentKaosClass}`;
+                    document.getElementById('kaos-form-id').value = item.id;
+                    document.getElementById('kaos-name').value = item.name;
+                    document.getElementById('kaos-gender').value = item.gender || '';
+                    document.getElementById('kaos-size').value = item.size;
+                }
+            }
+
+            const modal = document.getElementById('kaos-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.children[0].classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeKaosModal() {
+            const modal = document.getElementById('kaos-modal');
+            modal.classList.add('opacity-0');
+            modal.children[0].classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function saveKaosData() {
+            const id = document.getElementById('kaos-form-id').value;
+            const name = document.getElementById('kaos-name').value.trim();
+            const gender = document.getElementById('kaos-gender').value;
+            const size = document.getElementById('kaos-size').value;
+
+            if(!name || !size) return;
+
+            if(id) {
+                const idx = kaosData.findIndex(k => k.id === id);
+                if(idx !== -1) {
+                    kaosData[idx].name = name;
+                    kaosData[idx].gender = gender;
+                    kaosData[idx].size = size;
+                }
+            } else {
+                kaosData.push({
+                    id: generateId(),
+                    className: currentKaosClass,
+                    name: name,
+                    gender: gender,
+                    size: size
+                });
+            }
+
+            saveKaosToLocalStorage();
+            renderKaosTable();
+            closeKaosModal();
+            showToast("Data ukuran kaos berhasil disimpan.");
+        }
+
+        function deleteKaosItem(id) {
+            showConfirm(
+                "Hapus Data Kaos",
+                "Hapus data ukuran kaos siswa ini?",
+                () => {
+                    kaosData = kaosData.filter(k => k.id !== id);
+                    saveKaosToLocalStorage();
+                    renderKaosTable();
+                    showToast("Data kaos dihapus.", "success");
+                }
+            );
+        }
+
+        function saveKaosToLocalStorage() {
+            localStorage.setItem('kaosDataV1', JSON.stringify(kaosData));
+        }
+
+        function downloadCSV(filename, csvContent) {
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportDenahCSV() {
+            let csv = "No Kursi,Nama Siswa,Status Lunas,Kelas,L/P\n";
+            for(let i = 1; i <= totalSeats; i++) {
+                const p = getParticipantBySeat(i);
+                const name = p ? `"${p.name}"` : "KOSONG";
+                const lunas = p && p.paidDate ? `Lunas (${p.paidDate})` : "Belum";
+                const kelas = p ? `"${p.class || '-'}"` : "-";
+                const lp = p ? (p.gender || '-') : "-";
+                csv += `${i},${name},${lunas},${kelas},${lp}\n`;
+            }
+            downloadCSV(`Denah_Kursi_BIS_${currentBus}.csv`, csv);
+        }
+
+        function exportDaftarCSV() {
+            let csv = "No,Nama Siswa,L/P,Kelas,Status Lunas,Nomor Kursi\n";
+            const busParticipants = participants.filter(p => p.busId === currentBus);
+            busParticipants.forEach((p, idx) => {
+                const name = `"${p.name}"`;
+                const lp = p.gender || '-';
+                const kelas = `"${p.class || '-'}"`;
+                const lunas = p.paidDate ? `Lunas (${p.paidDate})` : "Belum Lunas";
+                const kursi = p.seat || '-';
+                csv += `${idx + 1},${name},${lp},${kelas},${lunas},${kursi}\n`;
+            });
+            downloadCSV(`Daftar_Siswa_BIS_${currentBus}.csv`, csv);
+        }
+
+        function exportKamarCSV() {
+            let csv = "No Kamar,Nama Siswa,L/P,Kelas\n";
+            const busHotel = hotelRooms.filter(h => h.busId === currentBus);
+            busHotel.forEach(h => {
+                csv += `"${h.roomNo}","${h.name}",${h.gender || '-'},"${h.class || '-'}"\n`;
+            });
+            downloadCSV(`Kamar_Hotel_BIS_${currentBus}.csv`, csv);
+        }
+
+        function exportRekapBusCSV() {
+            let csv = "Kelas / Asal,Jumlah Siswa Valid (Lunas & Berkursi)\n";
+            const validParticipants = participants.filter(p => p.busId === currentBus && p.seat && p.paidDate);
+            const grouped = validParticipants.reduce((acc, p) => {
+                const cls = p.class || 'Tanpa Kelas';
+                acc[cls] = (acc[cls] || 0) + 1;
+                return acc;
+            }, {});
+            let total = 0;
+            for (const [cls, count] of Object.entries(grouped)) {
+                total += count;
+                csv += `"${cls}",${count}\n`;
+            }
+            csv += `TOTAL VALID,${total}\n`;
+            downloadCSV(`Rekap_Valid_BIS_${currentBus}.csv`, csv);
+        }
+
+        function exportRekapGlobalCSV() {
+            let csv = "Armada,Total Siswa,Rincian Kelas\n";
+            for (let i = 1; i <= totalBuses; i++) {
+                const busData = participants.filter(p => p.busId === i);
+                const totalBus = busData.length;
+                const grouped = busData.reduce((acc, p) => {
+                    const cls = p.class || 'Tanpa Kelas';
+                    acc[cls] = (acc[cls] || 0) + 1;
+                    return acc;
+                }, {});
+                const details = Object.entries(grouped).map(([cls, count]) => `${cls}: ${count}`).join('; ');
+                csv += `BIS ${i},${totalBus},"${details}"\n`;
+            }
+            downloadCSV(`Rekap_Global_Semua_Armada.csv`, csv);
+        }
+
+        function exportKaosCSV() {
+            let csv = "Kelas,No,Nama Siswa,L/P,Ukuran Kaos\n";
+            kaosClasses.forEach(cls => {
+                const list = kaosData.filter(item => item.className === cls);
+                list.forEach((item, idx) => {
+                    csv += `"${cls}",${idx + 1},"${item.name}",${item.gender || '-'},"${item.size}"\n`;
+                });
+            });
+            downloadCSV(`Rekap_Ukuran_Kaos_8A_8J.csv`, csv);
+        }
+
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheet];
+                    
+                    const json = XLSX.utils.sheet_to_json(worksheet, {header: 1}); 
+                    
+                    let addedCount = 0;
+                    for (let i = 1; i < json.length; i++) {
+                        const row = json[i];
+                        if (!row || row.length === 0) continue; 
+
+                        let name = row[1] ? String(row[1]).trim() : '';
+                        if (!name) continue;
+
+                        let gender = row[2] ? String(row[2]).trim().toUpperCase() : '';
+                        let kelas = row[3] ? String(row[3]).trim() : '';
+
+                        participants.push({
+                            id: generateId(),
+                            name: name,
+                            gender: (gender === 'L' || gender === 'P') ? gender : '',
+                            class: kelas,
+                            paidDate: '', 
+                            seat: null,
+                            busId: currentBus
+                        });
+                        addedCount++;
+                    }
+
+                    if (addedCount > 0) {
+                        saveToLocalStorage();
+                        renderTable();
+                        renderBusLayout();
+                        renderHotelRooms();
+                        renderRekapBus();
+                        showToast(`Berhasil mengimpor ${addedCount} data siswa ke BIS ${currentBus}.`, 'success');
+                    } else {
+                        showToast("Tidak ada data valid yang ditemukan pada file Excel. Pastikan format: No | Nama | L/P | Kelas", 'error');
+                    }
+                } catch (error) {
+                    showToast("Terjadi kesalahan saat membaca file Excel.", 'error');
+                    console.error(error);
+                }
+                event.target.value = "";
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function handleKaosExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheet];
+                    
+                    const json = XLSX.utils.sheet_to_json(worksheet, {header: 1}); 
+                    
+                    let addedCount = 0;
+                    // Format yang diharapkan: No | Nama Siswa | L/P | Ukuran
+                    for (let i = 1; i < json.length; i++) {
+                        const row = json[i];
+                        if (!row || row.length === 0) continue; 
+
+                        let name = row[1] ? String(row[1]).trim() : '';
+                        if (!name) continue;
+
+                        let gender = row[2] ? String(row[2]).trim().toUpperCase() : '';
+                        let size = row[3] ? String(row[3]).trim().toUpperCase() : '';
+
+                        const validSizes = ['M', 'L', 'XL', 'XXL', 'XXXL'];
+                        if(!validSizes.includes(size)) {
+                            size = 'L'; // Fallback
+                        }
+
+                        kaosData.push({
+                            id: generateId(),
+                            className: currentKaosClass,
+                            name: name,
+                            gender: (gender === 'L' || gender === 'P') ? gender : '',
+                            size: size
+                        });
+                        addedCount++;
+                    }
+
+                    if (addedCount > 0) {
+                        saveKaosToLocalStorage();
+                        renderKaosTable();
+                        showToast(`Berhasil mengimpor ${addedCount} data kaos ke Kelas ${currentKaosClass}.`, 'success');
+                    } else {
+                        showToast("Tidak ada data valid. Format harus: No | Nama Siswa | L/P | Ukuran", 'warning');
+                    }
+                } catch (error) {
+                    showToast("Terjadi kesalahan saat membaca file Excel Kaos.", 'error');
+                    console.error(error);
+                }
+                event.target.value = "";
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function openFormModal(id = null, prefilledSeat = null) {
+            document.getElementById('participant-form').reset();
+            formId.value = '';
+            
+            if (id) {
+                const p = getParticipantById(id);
+                if (p) {
+                    document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-user-pen mr-2 text-blue-600"></i> Edit Data Siswa (BIS ${p.busId})`;
+                    formId.value = p.id;
+                    formName.value = p.name;
+                    formGender.value = p.gender || '';
+                    formClass.value = p.class || '';
+                    formPaid.value = p.paidDate || '';
+                    formSeat.value = p.seat || '';
+                    document.getElementById('btn-clear-seat').classList.toggle('hidden', !p.seat);
+                    toggleSeatInput(p.paidDate, true);
+                }
+            } else {
+                document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-user-plus mr-2 text-blue-600"></i> Tambah Siswa Baru (BIS ${currentBus})`;
+                document.getElementById('btn-clear-seat').classList.add('hidden');
+                
+                if (prefilledSeat) {
+                    formSeat.value = prefilledSeat;
+                    document.getElementById('modal-title').innerHTML = `Isi Data Untuk Kursi <span class="text-blue-600 font-black">#${prefilledSeat}</span>`;
+                    formPaid.value = '';
+                    toggleSeatInput('');
+                } else {
+                    toggleSeatInput('');
+                }
+            }
+
+            const modal = document.getElementById('input-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.children[0].classList.remove('scale-95');
+                formName.focus();
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('input-modal');
+            modal.classList.add('opacity-0');
+            modal.children[0].classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function saveSeatData() {
+            const id = formId.value;
+            const name = formName.value.trim();
+            const gender = formGender.value;
+            const kelas = formClass.value.trim();
+            const paid = formPaid.value;
+            const seatStr = formSeat.value;
+            const seat = seatStr !== '' ? parseInt(seatStr) : null;
+
+            if (name === "") return;
+
+            if (seat !== null && !paid) {
+                showToast("Siswa harus memiliki Tanggal Lunas sebelum dapat memilih kursi!", "warning");
+                return;
+            }
+
+            if (seat !== null) {
+                if (seat < 1 || seat > 52) {
+                    showToast("Nomor kursi tidak valid! (Harus 1 - 52)", "error");
+                    return;
+                }
+                const existing = getParticipantBySeat(seat);
+                if (existing && existing.id !== id) {
+                    showConfirm(
+                        "Kursi Sudah Terisi",
+                        `Kursi nomor ${seat} sudah diisi oleh "${existing.name}".\nGantikan posisi dia?`,
+                        () => {
+                            existing.seat = null;
+                            executeSaveSeatData(id, name, gender, kelas, paid, seat);
+                        }
+                    );
+                    return; // Wait for confirm
+                }
+            }
+            
+            executeSaveSeatData(id, name, gender, kelas, paid, seat);
+        }
+
+        function executeSaveSeatData(id, name, gender, kelas, paid, seat) {
+            if (id) {
+                const pIndex = participants.findIndex(p => p.id === id);
+                if (pIndex !== -1) {
+                    participants[pIndex].name = name;
+                    participants[pIndex].gender = gender;
+                    participants[pIndex].class = kelas;
+                    participants[pIndex].paidDate = paid;
+                    participants[pIndex].seat = seat;
+                }
+            } else {
+                participants.push({
+                    id: generateId(), name: name, gender: gender, class: kelas, paidDate: paid, seat: seat, busId: currentBus
+                });
+            }
+            
+            saveToLocalStorage();
+            renderBusLayout();
+            renderTable();
+            renderHotelRooms();
+            renderRekapBus();
+            closeModal();
+            showToast("Data siswa berhasil disimpan.");
+        }
+
+        function clearSeatOnly() {
+            const id = formId.value;
+            if (!id) return;
+            const pIndex = participants.findIndex(p => p.id === id);
+            if (pIndex !== -1) participants[pIndex].seat = null;
+
+            saveToLocalStorage();
+            renderBusLayout();
+            renderTable();
+            renderHotelRooms();
+            renderRekapBus();
+            closeModal();
+            showToast("Kursi dilepaskan.");
+        }
+
+        function deleteParticipant(id) {
+            showConfirm(
+                "Hapus Data Siswa",
+                "Hapus siswa ini secara permanen dari daftar rombongan?",
+                () => {
+                    participants = participants.filter(p => p.id !== id);
+                    saveToLocalStorage();
+                    renderBusLayout();
+                    renderTable();
+                    renderHotelRooms();
+                    renderRekapBus();
+                    showToast("Data siswa dihapus.", "success");
+                }
+            );
+        }
+
+        function openClearAllModal() {
+            const m = document.getElementById('confirm-modal');
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); m.children[0].classList.remove('scale-95'); }, 10);
+        }
+
+        function closeClearAllModal() {
+            const m = document.getElementById('confirm-modal');
+            m.classList.add('opacity-0');
+            m.children[0].classList.add('scale-95');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function executeClearSeats() {
+            participants.forEach(p => { if(p.busId === currentBus) p.seat = null; });
+            saveToLocalStorage();
+            renderBusLayout();
+            renderTable();
+            renderHotelRooms();
+            renderRekapBus();
+            closeClearAllModal();
+            showToast("Semua kursi di bus ini telah dikosongkan.", "success");
+        }
+
+        function openDeleteAllModal() {
+            document.getElementById('delete-modal-bus-title').innerText = `BIS ${currentBus}`;
+            const m = document.getElementById('delete-all-modal');
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); m.children[0].classList.remove('scale-95'); }, 10);
+        }
+
+        function closeDeleteAllModal() {
+            const m = document.getElementById('delete-all-modal');
+            m.classList.add('opacity-0');
+            m.children[0].classList.add('scale-95');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function executeDeleteAllParticipants() {
+            participants = participants.filter(p => p.busId !== currentBus);
+            saveToLocalStorage();
+            renderBusLayout();
+            renderTable();
+            renderHotelRooms();
+            renderRekapBus();
+            closeDeleteAllModal();
+            showToast(`Semua data siswa di BIS ${currentBus} dihapus.`, "success");
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('busZiarahDataV6', JSON.stringify(participants));
+        }
+
+        function saveHotelToLocalStorage() {
+            localStorage.setItem('hotelRoomsDataV1', JSON.stringify(hotelRooms));
+        }
+
+        /* ================= FITUR PENDAMPING ================= */
+        function renderPendampingTable() {
+            const tbody = document.getElementById('pendamping-table-body');
+            tbody.innerHTML = '';
+
+            if (pendampingData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 italic">Belum ada data pendamping. Klik "Tambah Pendamping".</td></tr>`;
+                return;
+            }
+
+            pendampingData.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+                
+                let assignmentBadge = `<span class="inline-block px-3 py-1 rounded-md bg-blue-50 text-blue-700 font-bold border border-blue-200 text-xs">${item.assignment}</span>`;
+                if (item.assignment === 'Umum/Panitia') {
+                    assignmentBadge = `<span class="inline-block px-3 py-1 rounded-md bg-slate-800 text-white font-bold text-xs">${item.assignment}</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center text-slate-500">${index + 1}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-800">${item.name}</td>
+                    <td class="py-3 px-4 text-center text-slate-600">${item.gender || '-'}</td>
+                    <td class="py-3 px-4 text-slate-600">${item.phone || '-'}</td>
+                    <td class="py-3 px-4">${assignmentBadge}</td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex justify-center gap-1.5">
+                            <button onclick="openPendampingModal('${item.id}')" class="px-2.5 py-1.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-semibold border border-blue-100"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deletePendampingItem('${item.id}')" class="px-2.5 py-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold border border-red-100"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openPendampingModal(id = null) {
+            document.getElementById('pendamping-form').reset();
+            document.getElementById('pendamping-form-id').value = '';
+            document.getElementById('pendamping-modal-title').innerHTML = `<i class="fa-solid fa-user-tie mr-2 text-blue-600"></i> Tambah Pendamping Baru`;
+
+            if(id) {
+                const item = pendampingData.find(p => p.id === id);
+                if(item) {
+                    document.getElementById('pendamping-modal-title').innerHTML = `<i class="fa-solid fa-user-tie mr-2 text-blue-600"></i> Edit Data Pendamping`;
+                    document.getElementById('pendamping-form-id').value = item.id;
+                    document.getElementById('pendamping-name').value = item.name;
+                    document.getElementById('pendamping-gender').value = item.gender || '';
+                    document.getElementById('pendamping-phone').value = item.phone || '';
+                    document.getElementById('pendamping-assignment').value = item.assignment || 'Umum/Panitia';
+                }
+            }
+
+            const modal = document.getElementById('pendamping-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.children[0].classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closePendampingModal() {
+            const modal = document.getElementById('pendamping-modal');
+            modal.classList.add('opacity-0');
+            modal.children[0].classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function savePendampingData() {
+            const id = document.getElementById('pendamping-form-id').value;
+            const name = document.getElementById('pendamping-name').value.trim();
+            const gender = document.getElementById('pendamping-gender').value;
+            const phone = document.getElementById('pendamping-phone').value.trim();
+            const assignment = document.getElementById('pendamping-assignment').value;
+
+            if(!name) return;
+
+            if(id) {
+                const idx = pendampingData.findIndex(p => p.id === id);
+                if(idx !== -1) {
+                    pendampingData[idx].name = name;
+                    pendampingData[idx].gender = gender;
+                    pendampingData[idx].phone = phone;
+                    pendampingData[idx].assignment = assignment;
+                }
+            } else {
+                pendampingData.push({
+                    id: generateId(),
+                    name: name,
+                    gender: gender,
+                    phone: phone,
+                    assignment: assignment
+                });
+            }
+
+            savePendampingToLocalStorage();
+            renderPendampingTable();
+            closePendampingModal();
+            showToast("Data pendamping berhasil disimpan.");
+        }
+
+        function deletePendampingItem(id) {
+            showConfirm(
+                "Hapus Pendamping",
+                "Hapus data pendamping/guru ini?",
+                () => {
+                    pendampingData = pendampingData.filter(p => p.id !== id);
+                    savePendampingToLocalStorage();
+                    renderPendampingTable();
+                    showToast("Data pendamping dihapus.", "success");
+                }
+            );
+        }
+
+        function savePendampingToLocalStorage() {
+            localStorage.setItem('pendampingDataV1', JSON.stringify(pendampingData));
+        }
+
+        function exportPendampingCSV() {
+            let csv = "No,Nama Pendamping,L/P,No HP,Penugasan\n";
+            pendampingData.forEach((item, idx) => {
+                csv += `${idx + 1},"${item.name}",${item.gender || '-'},"${item.phone || '-'}","${item.assignment}"\n`;
+            });
+            downloadCSV(`Data_Pendamping_Guru.csv`, csv);
+        }
+
+        // Init
+        window.onload = () => {
+            renderBusSelector();
+            switchBus(1); 
+        };
+    </script>
+</body>
+</html>
