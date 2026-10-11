@@ -19,6 +19,9 @@
     <!-- SheetJS (Excel Parser) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+    <!-- Supabase JS Client for Multi-PC Realtime Database -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -204,11 +207,27 @@
             <!-- Header Content -->
             <div class="relative z-10 p-6 sm:p-8 md:p-10">
                 
-                <!-- Top Badge -->
+                <!-- Top Badges & Multi-PC Controls -->
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 dark-glass text-xs font-semibold text-indigo-200 border border-white/10 tracking-wide">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         PANITIA OUTING CLASS WISATA ZIARAH
+                    </div>
+
+                    <!-- Multi-PC Sync & Login Controls -->
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <!-- Status Sinkronisasi Server Pusat -->
+                        <button onclick="openSyncModal()" id="sync-status-btn" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-400/30 text-xs font-semibold transition backdrop-blur-sm cursor-pointer shadow-sm" title="Klik untuk pengaturan sinkronisasi PC 1, 2, 3, 4">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span id="sync-status-text"><i class="fa-solid fa-network-wired mr-1"></i> Multi-PC: Server Lokal (192.168.100.74)</span>
+                        </button>
+
+                        <!-- Profil Operator Login -->
+                        <button onclick="openLoginModal()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/30 hover:bg-indigo-500/50 text-white border border-indigo-400/40 text-xs font-bold transition backdrop-blur-sm shadow-sm cursor-pointer" title="Klik untuk ganti PC / Operator">
+                            <i class="fa-solid fa-desktop text-indigo-300"></i>
+                            <span id="operator-badge-text">PC 1 (Admin Utama)</span>
+                            <i class="fa-solid fa-repeat text-[10px] text-indigo-300 ml-0.5"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -997,6 +1016,184 @@
                 </button>
                 <button onclick="executeDeleteAllParticipants()" class="px-4 py-2.5 bg-gradient-to-r from-rose-600 to-red-600 text-white rounded-xl hover:from-rose-700 hover:to-red-700 transition font-bold flex-1 shadow-md shadow-rose-500/20 text-xs">
                     Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LOGIN / GANTI OPERATOR MULTI-PC -->
+    <div id="login-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-7 transform scale-95 transition-transform duration-300 mx-4 border border-slate-100">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg border border-indigo-200">
+                        <i class="fa-solid fa-network-wired"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-900">Sesi Login Multi-PC</h3>
+                        <p class="text-xs text-slate-500">Pilih identitas komputer Anda</p>
+                    </div>
+                </div>
+                <button onclick="closeLoginModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2.5 mb-5" id="pc-selection-list">
+                <!-- PC 1 -->
+                <label class="flex items-center justify-between p-3.5 rounded-2xl border-2 border-indigo-200 bg-indigo-50/50 cursor-pointer hover:bg-indigo-50 transition">
+                    <div class="flex items-center gap-3">
+                        <input type="radio" name="pc-role" value="pc1" checked class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <span class="block text-sm font-bold text-slate-800">🖥️ PC 1 - Admin Utama & Armada 1-2</span>
+                            <span class="block text-xs text-slate-500">Akses penuh semua armada & pengaturan</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- PC 2 -->
+                <label class="flex items-center justify-between p-3.5 rounded-2xl border-2 border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition">
+                    <div class="flex items-center gap-3">
+                        <input type="radio" name="pc-role" value="pc2" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <span class="block text-sm font-bold text-slate-800">🖥️ PC 2 - Operator Armada 3, 4, 5</span>
+                            <span class="block text-xs text-slate-500">Fokus manifest & kursi penumpang Bis 3-5</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- PC 3 -->
+                <label class="flex items-center justify-between p-3.5 rounded-2xl border-2 border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition">
+                    <div class="flex items-center gap-3">
+                        <input type="radio" name="pc-role" value="pc3" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <span class="block text-sm font-bold text-slate-800">🖥️ PC 3 - Operator Armada 6-7 & Kamar</span>
+                            <span class="block text-xs text-slate-500">Manifest Bis 6-7 serta pembagian hotel</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- PC 4 -->
+                <label class="flex items-center justify-between p-3.5 rounded-2xl border-2 border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition">
+                    <div class="flex items-center gap-3">
+                        <input type="radio" name="pc-role" value="pc4" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <span class="block text-sm font-bold text-slate-800">🖥️ PC 4 - Operator Data Kaos (8A - 8J)</span>
+                            <span class="block text-xs text-slate-500">Fokus input & rekap ukuran seragam siswa</span>
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nama Operator / Panitia</label>
+                <input type="text" id="custom-operator-name" placeholder="Misal: Bpk. Budi / Panitia 1" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+
+            <div class="flex gap-2.5">
+                <button onclick="closeLoginModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-semibold text-xs flex-1">
+                    Batal
+                </button>
+                <button onclick="applyLoginOperator()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition font-bold text-xs flex-1 shadow-md shadow-indigo-500/20">
+                    <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> Masuk Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PENGATURAN SINKRONISASI MULTI-PC -->
+    <div id="sync-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-8 transform scale-95 transition-transform duration-300 mx-4 border border-slate-100">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl border border-emerald-200">
+                        <i class="fa-solid fa-rotate"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-slate-900">Sinkronisasi Data Multi-PC</h3>
+                        <p class="text-xs text-slate-500">Hubungkan PC 1, 2, 3, 4 ke Server Terpusat</p>
+                    </div>
+                </div>
+                <button onclick="closeSyncModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Status Box -->
+            <div id="sync-status-box" class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 mb-6 flex items-start gap-3">
+                <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm shrink-0 mt-0.5" id="sync-box-icon">
+                    <i class="fa-solid fa-cloud"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-emerald-900 mb-0.5" id="sync-box-title">Sinkronisasi Multi-PC</h4>
+                    <p class="text-xs text-emerald-700 leading-relaxed" id="sync-box-desc">
+                        Hubungkan ke Supabase Cloud agar seluruh PC 1, 2, 3, 4 otomatis tersinkronisasi secara real-time.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Supabase Cloud Config -->
+            <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 mb-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">
+                        <i class="fa-solid fa-bolt"></i>
+                    </span>
+                    <h4 class="text-sm font-extrabold text-slate-800">Supabase Cloud (Realtime Multi-PC)</h4>
+                </div>
+
+                <div class="space-y-3 mb-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Project URL:</label>
+                        <input type="text" id="supabase-url-input" value="https://cdkczgxjjbtwotzpecji.supabase.co" readonly class="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-100 text-slate-700 font-mono text-xs cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Anon Public API Key:</label>
+                        <input type="password" id="supabase-key-input" value="sb_publishable_GxmyfHUTPuXTeD4xO8M9-Q_sYzWeihv" placeholder="Kunci API otomatis terpasang" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-emerald-50 font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-2">
+                    <p class="text-[11px] text-slate-500">
+                        🔑 <i>Dapatkan dari tombol <b>API Keys</b> di dashboard Supabase.</i>
+                    </p>
+                    <button onclick="saveSupabaseConfig()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-link"></i> Hubungkan Supabase
+                    </button>
+                </div>
+            </div>
+
+            <!-- Server URL Input (Opsional LAN) -->
+            <div class="mb-5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Atau Hubungkan Server Lokal LAN (Tanpa Internet):</label>
+                <div class="flex gap-2">
+                    <input type="text" id="server-url-input" value="http://192.168.100.74:8080" class="flex-1 px-4 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <button onclick="testAndSaveServerUrl()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-plug"></i> Hubungkan LAN
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cadangan Manual (Ekspor & Impor JSON) -->
+            <div class="pt-5 border-t border-slate-100 mb-6">
+                <div class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk text-indigo-600"></i> Cadangan & Transfer Manual (Flashdisk / WA)
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="exportBackupJSON()" class="px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl transition font-bold text-xs flex flex-col items-center gap-1.5 text-center">
+                        <i class="fa-solid fa-download text-base"></i>
+                        <span>Unduh File Cadangan (.json)</span>
+                    </button>
+                    <button onclick="document.getElementById('import-json-file').click()" class="px-4 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl transition font-bold text-xs flex flex-col items-center gap-1.5 text-center">
+                        <i class="fa-solid fa-upload text-base"></i>
+                        <span>Impor File Cadangan (.json)</span>
+                    </button>
+                    <input type="file" id="import-json-file" accept=".json" class="hidden" onchange="importBackupJSON(event)">
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="closeSyncModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-bold text-xs">
+                    Tutup
                 </button>
             </div>
         </div>
@@ -2235,6 +2432,7 @@
                 console.error("Gagal menyimpan data kaos:", e);
                 showToast("Gagal menyimpan data kaos! Storage penuh.", "error");
             }
+            broadcastMultiPCSync("Data Ukuran Kaos");
         }
 
         // ============================================================
@@ -2830,7 +3028,7 @@
         }
 
         // ============================================================
-        // LOCAL STORAGE WRITERS
+        // LOCAL STORAGE WRITERS & MULTI-PC SYNC BROADCASTER
         // ============================================================
         function saveToLocalStorage() {
             try {
@@ -2839,6 +3037,7 @@
                 console.error("Gagal menyimpan data peserta:", e);
                 showToast("Gagal menyimpan data! Storage mungkin penuh.", "error");
             }
+            broadcastMultiPCSync("Data Siswa & Kursi");
         }
 
         function saveHotelToLocalStorage() {
@@ -2848,6 +3047,7 @@
                 console.error("Gagal menyimpan data hotel:", e);
                 showToast("Gagal menyimpan data hotel! Storage mungkin penuh.", "error");
             }
+            broadcastMultiPCSync("Data Kamar Hotel");
         }
 
         function savePendampingToLocalStorage() {
@@ -2857,6 +3057,7 @@
                 console.error("Gagal menyimpan data pendamping:", e);
                 showToast("Gagal menyimpan data pendamping! Storage mungkin penuh.", "error");
             }
+            broadcastMultiPCSync("Data Pendamping");
         }
 
         // ============================================================
@@ -3003,11 +3204,448 @@
         }
 
         // ============================================================
+        // MULTI-PC SYNCHRONIZATION & OPERATOR SESSION ENGINE
+        // ============================================================
+        let currentOperator = {
+            id: 'pc1',
+            name: 'PC 1 (Admin Utama)',
+            role: 'admin'
+        };
+
+        let serverSyncUrl = 'http://192.168.100.74:8080';
+        let isServerConnected = false;
+        let isSyncingToServer = false;
+        let lastSyncTimestamp = 0;
+
+        function initOperatorSession() {
+            const saved = localStorage.getItem('ziarah_current_operator');
+            if (saved) {
+                try { currentOperator = JSON.parse(saved); } catch (e) {}
+            }
+            updateOperatorBadgeUI();
+        }
+
+        function updateOperatorBadgeUI() {
+            const badge = document.getElementById('operator-badge-text');
+            if (badge) {
+                badge.innerText = currentOperator.name || 'PC 1 (Admin)';
+            }
+        }
+
+        function openLoginModal() {
+            const radios = document.querySelectorAll('input[name="pc-role"]');
+            radios.forEach(r => {
+                r.checked = (r.value === currentOperator.id);
+            });
+            const customInput = document.getElementById('custom-operator-name');
+            if (customInput) customInput.value = currentOperator.name || '';
+            openModal('login-modal');
+        }
+
+        function closeLoginModal() {
+            closeModalById('login-modal');
+        }
+
+        function applyLoginOperator() {
+            const selectedRadio = document.querySelector('input[name="pc-role"]:checked');
+            const roleVal = selectedRadio ? selectedRadio.value : 'pc1';
+            const customName = document.getElementById('custom-operator-name').value.trim();
+
+            const roleMap = {
+                pc1: { id: 'pc1', defaultName: 'PC 1 (Admin Utama)', role: 'admin', defaultBus: 1 },
+                pc2: { id: 'pc2', defaultName: 'PC 2 (Operator Bis 3-5)', role: 'operator', defaultBus: 3 },
+                pc3: { id: 'pc3', defaultName: 'PC 3 (Operator Bis 6-7 & Kamar)', role: 'operator', defaultBus: 6 },
+                pc4: { id: 'pc4', defaultName: 'PC 4 (Operator Kaos 8A-8J)', role: 'kaos', defaultBus: 1 }
+            };
+
+            const targetConfig = roleMap[roleVal] || roleMap.pc1;
+            currentOperator = {
+                id: targetConfig.id,
+                name: customName || targetConfig.defaultName,
+                role: targetConfig.role
+            };
+
+            localStorage.setItem('ziarah_current_operator', JSON.stringify(currentOperator));
+            updateOperatorBadgeUI();
+            closeLoginModal();
+            showToast(`Sesi aktif: ${currentOperator.name}`, "success");
+
+            if (currentOperator.role === 'kaos') {
+                applyKaosView();
+            } else if (targetConfig.defaultBus && activeViewMode === 'bus') {
+                switchBus(targetConfig.defaultBus);
+            }
+        }
+
+        // ============================================================
+        // SUPABASE REALTIME CLOUD INTEGRATION
+        // ============================================================
+        const SUPABASE_PROJECT_URL = "https://cdkczgxjjbtwotzpecji.supabase.co";
+        let supabaseClient = null;
+        let supabaseAnonKey = localStorage.getItem('supabase_anon_key') || 'sb_publishable_GxmyfHUTPuXTeD4xO8M9-Q_sYzWeihv';
+        let isSupabaseConnected = false;
+
+        function initSupabase() {
+            if (!supabaseAnonKey) {
+                updateSyncStatusUI();
+                return;
+            }
+            try {
+                if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                    supabaseClient = window.supabase.createClient(SUPABASE_PROJECT_URL, supabaseAnonKey);
+                    isSupabaseConnected = true;
+                    updateSyncStatusUI();
+
+                    // Ambil data pertama kali dari Supabase
+                    loadDataFromSupabase();
+
+                    // Pasang Realtime WebSocket Channel
+                    supabaseClient
+                        .channel('ziarah-realtime-channel')
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'ziarah_data', filter: 'id=eq.main' }, payload => {
+                            if (payload.new && payload.new.data) {
+                                const serverData = payload.new.data;
+                                const updatedBy = payload.new.updated_by || 'PC Lain';
+                                if (updatedBy !== currentOperator.name) {
+                                    applyIncomingData(serverData, updatedBy);
+                                }
+                            }
+                        })
+                        .subscribe();
+                }
+            } catch (err) {
+                console.warn("Supabase init error:", err);
+                isSupabaseConnected = false;
+                updateSyncStatusUI();
+            }
+        }
+
+        async function saveSupabaseConfig() {
+            const keyInput = document.getElementById('supabase-key-input').value.trim();
+            if (!keyInput) {
+                showToast("Silakan tempelkan Anon Public Key dari Supabase!", "warning");
+                return;
+            }
+            supabaseAnonKey = keyInput;
+            localStorage.setItem('supabase_anon_key', supabaseAnonKey);
+            showToast("Menghubungkan ke Supabase Cloud...", "info");
+            initSupabase();
+
+            setTimeout(async () => {
+                await saveToSupabase();
+                showToast("Berhasil terhubung ke Supabase Cloud! Realtime Multi-PC Aktif.", "success");
+            }, 600);
+        }
+
+        async function loadDataFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('ziarah_data')
+                    .select('*')
+                    .eq('id', 'main')
+                    .maybeSingle();
+
+                if (error) {
+                    console.warn("Supabase read error:", error);
+                    return;
+                }
+
+                if (data && data.data) {
+                    const serverData = data.data;
+                    const merged = { ...serverData };
+                    // Amankan: Jika lokal ada data tapi di cloud masih kosong, jangan timpa dengan array kosong
+                    if ((!merged.participants || merged.participants.length === 0) && participants && participants.length > 0) {
+                        merged.participants = participants;
+                    }
+                    if ((!merged.hotelRooms || merged.hotelRooms.length === 0) && hotelRooms && hotelRooms.length > 0) {
+                        merged.hotelRooms = hotelRooms;
+                    }
+                    if ((!merged.kaosData || merged.kaosData.length === 0) && kaosData && kaosData.length > 0) {
+                        merged.kaosData = kaosData;
+                    }
+                    if ((!merged.pendampingData || merged.pendampingData.length === 0) && pendampingData && pendampingData.length > 0) {
+                        merged.pendampingData = pendampingData;
+                    }
+
+                    applyIncomingData(merged, data.updated_by || 'Cloud', true);
+                    isSupabaseConnected = true;
+                    updateSyncStatusUI();
+
+                    // Jika ada merge data lokal yang dikirim ke cloud
+                    if (JSON.stringify(merged) !== JSON.stringify(serverData)) {
+                        await saveToSupabase();
+                    }
+                } else {
+                    await saveToSupabase();
+                }
+            } catch (err) {
+                console.warn("Supabase fetch failed:", err);
+            }
+        }
+
+        async function saveToSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const payload = {
+                    id: 'main',
+                    data: {
+                        participants: participants,
+                        hotelRooms: hotelRooms,
+                        kaosData: kaosData,
+                        pendampingData: pendampingData
+                    },
+                    updated_at: new Date().toISOString(),
+                    updated_by: currentOperator.name || 'Operator'
+                };
+                const { error } = await supabaseClient.from('ziarah_data').upsert(payload);
+                if (error) {
+                    console.warn("Supabase upsert error:", error);
+                } else {
+                    isSupabaseConnected = true;
+                    updateSyncStatusUI();
+                }
+            } catch (err) {
+                console.warn("Supabase save error:", err);
+            }
+        }
+
+        function applyIncomingData(data, sourceName, isInitial = false) {
+            if (!data) return;
+            if (Array.isArray(data.participants)) participants = data.participants;
+            if (Array.isArray(data.hotelRooms)) hotelRooms = data.hotelRooms;
+            if (Array.isArray(data.kaosData)) kaosData = data.kaosData;
+            if (Array.isArray(data.pendampingData)) pendampingData = data.pendampingData;
+
+            try {
+                localStorage.setItem('busZiarahDataV6', JSON.stringify(participants));
+                localStorage.setItem('hotelRoomsDataV1', JSON.stringify(hotelRooms));
+                localStorage.setItem('kaosDataV1', JSON.stringify(kaosData));
+                localStorage.setItem('pendampingDataV1', JSON.stringify(pendampingData));
+            } catch (e) {}
+
+            const inputModal = document.getElementById('input-modal');
+            const isEditing = inputModal && !inputModal.classList.contains('hidden');
+            if (!isEditing) {
+                renderAllViews();
+            }
+
+            if (!isInitial && sourceName && sourceName !== currentOperator.name) {
+                showToast(`Data otomatis disinkronkan dari ${sourceName}!`, "info");
+            }
+        }
+
+        function openSyncModal() {
+            const serverInput = document.getElementById('server-url-input');
+            if (serverInput) serverInput.value = serverSyncUrl;
+
+            const keyInput = document.getElementById('supabase-key-input');
+            if (keyInput && supabaseAnonKey) keyInput.value = supabaseAnonKey;
+
+            openModal('sync-modal');
+        }
+
+        function closeSyncModal() {
+            closeModalById('sync-modal');
+        }
+
+        function updateSyncStatusUI() {
+            const btn = document.getElementById('sync-status-btn');
+            const textEl = document.getElementById('sync-status-text');
+            const boxTitle = document.getElementById('sync-box-title');
+            const boxDesc = document.getElementById('sync-box-desc');
+            const statusBox = document.getElementById('sync-status-box');
+
+            if (isSupabaseConnected) {
+                if (btn) btn.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-400/30 text-xs font-semibold transition backdrop-blur-sm cursor-pointer shadow-sm';
+                if (textEl) textEl.innerHTML = `<i class="fa-solid fa-bolt text-emerald-400 mr-1"></i> Multi-PC: Supabase Realtime (Aktif)`;
+                if (boxTitle) boxTitle.innerText = "Supabase Cloud Realtime Aktif!";
+                if (boxDesc) boxDesc.innerText = "Seluruh PC 1, 2, 3, 4 terhubung secara real-time via Supabase Cloud. Setiap perubahan otomatis sinkron detik itu juga.";
+                if (statusBox) statusBox.className = 'p-4 rounded-2xl bg-emerald-50 border border-emerald-200 mb-6 flex items-start gap-3';
+            } else if (isServerConnected) {
+                if (btn) btn.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-400/30 text-xs font-semibold transition backdrop-blur-sm cursor-pointer shadow-sm';
+                if (textEl) textEl.innerHTML = `<i class="fa-solid fa-network-wired mr-1"></i> Multi-PC: Server LAN Aktif`;
+                if (boxTitle) boxTitle.innerText = "Server Pusat LAN Terhubung";
+                if (boxDesc) boxDesc.innerText = `Data tersinkronkan antar PC 1, 2, 3, 4 melalui ${serverSyncUrl}.`;
+                if (statusBox) statusBox.className = 'p-4 rounded-2xl bg-emerald-50 border border-emerald-200 mb-6 flex items-start gap-3';
+            } else {
+                if (btn) btn.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-400/30 text-xs font-semibold transition backdrop-blur-sm cursor-pointer shadow-sm';
+                if (textEl) textEl.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> Multi-PC: Belum Terhubung (Klik Di Sini)`;
+                if (boxTitle) boxTitle.innerText = "Belum Terhubung Database Multi-PC";
+                if (boxDesc) boxDesc.innerText = "Silakan masukkan Anon Key Supabase di bawah untuk mengaktifkan sinkronisasi otomatis antar PC 1, 2, 3, 4.";
+                if (statusBox) statusBox.className = 'p-4 rounded-2xl bg-amber-50 border border-amber-200 mb-6 flex items-start gap-3';
+            }
+        }
+
+        function testAndSaveServerUrl() {
+            const inputVal = document.getElementById('server-url-input').value.trim();
+            if (!inputVal) {
+                showToast("Masukkan alamat server pusat!", "warning");
+                return;
+            }
+            serverSyncUrl = inputVal.replace(/\/+$/, '');
+            localStorage.setItem('ziarah_server_url', serverSyncUrl);
+            showToast("Mencoba menghubungkan ke server...", "info");
+            loadDataFromServer(true);
+        }
+
+        async function loadDataFromServer(isInitial = false) {
+            if (!serverSyncUrl) return;
+
+            try {
+                const res = await fetch(serverSyncUrl.replace(/\/+$/, '') + '/api/data', { cache: 'no-store' });
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const data = await res.json();
+
+                if (data && (Array.isArray(data.participants) || Array.isArray(data.kaosData))) {
+                    const serverTime = data.lastUpdated ? new Date(data.lastUpdated).getTime() : 0;
+                    
+                    if (isInitial || (serverTime > lastSyncTimestamp && !isSyncingToServer)) {
+                        applyIncomingData(data, data.updatedBy || 'Server LAN', isInitial);
+                        lastSyncTimestamp = serverTime || Date.now();
+                    }
+
+                    isServerConnected = true;
+                    updateSyncStatusUI();
+                }
+            } catch (err) {
+                isServerConnected = false;
+                updateSyncStatusUI();
+            }
+        }
+
+        function broadcastMultiPCSync(sourceName = "Perubahan Data") {
+            // 1. Simpan ke Supabase jika terhubung
+            if (isSupabaseConnected) {
+                saveToSupabase();
+            }
+
+            // 2. Simpan ke Server LAN jika aktif
+            if (serverSyncUrl && isServerConnected) {
+                const payload = {
+                    participants: participants,
+                    hotelRooms: hotelRooms,
+                    kaosData: kaosData,
+                    pendampingData: pendampingData,
+                    lastUpdated: new Date().toISOString(),
+                    updatedBy: currentOperator.name || 'Operator'
+                };
+
+                isSyncingToServer = true;
+                fetch(serverSyncUrl.replace(/\/+$/, '') + '/api/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(res => {
+                    isSyncingToServer = false;
+                    lastSyncTimestamp = Date.now();
+                })
+                .catch(err => {
+                    isSyncingToServer = false;
+                    console.warn("Gagal simpan ke server:", err);
+                    isServerConnected = false;
+                    updateSyncStatusUI();
+                });
+            }
+        }
+
+        function renderAllViews() {
+            renderBusSelector();
+            if (activeViewMode === 'bus') {
+                renderBusLayout();
+                renderTable();
+                renderHotelRooms();
+                renderRekapBus();
+            } else if (activeViewMode === 'kaos') {
+                renderKaosTabs();
+                renderKaosTable();
+            } else if (activeViewMode === 'pendamping') {
+                renderPendampingTable();
+            } else if (activeViewMode === 'global') {
+                renderRekapGlobal();
+            }
+        }
+
+        function exportBackupJSON() {
+            const backupObj = {
+                app: "Manajemen Ziarah Wisata Banyumas-Malang",
+                exportedAt: new Date().toISOString(),
+                exportedBy: currentOperator.name,
+                participants: participants,
+                hotelRooms: hotelRooms,
+                kaosData: kaosData,
+                pendampingData: pendampingData
+            };
+            const jsonStr = JSON.stringify(backupObj, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Cadangan_Ziarah_Wisata_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("File cadangan lengkap (.json) berhasil diunduh!", "success");
+        }
+
+        function importBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data.participants) || Array.isArray(data.kaosData)) {
+                        applyIncomingData(data, "Impor Cadangan", false);
+                        broadcastMultiPCSync("Impor Cadangan JSON");
+                        showToast("Data cadangan berhasil dipulihkan & disinkronkan!", "success");
+                    } else {
+                        showToast("Format file cadangan tidak valid!", "error");
+                    }
+                } catch (err) {
+                    showToast("Gagal membaca file JSON: " + err.message, "error");
+                }
+                event.target.value = "";
+            };
+            reader.readAsText(file);
+        }
+
+        // ============================================================
         // APPLICATION INITIALIZATION
         // ============================================================
-        window.onload = () => {
+        window.onload = async () => {
+            initOperatorSession();
+            
+            // Inisialisasi Supabase Cloud
+            initSupabase();
+
+            // Deteksi otomatis URL server lokal jika dibuka via HTTP
+            if (window.location.protocol.startsWith('http')) {
+                serverSyncUrl = window.location.origin;
+            } else {
+                const savedUrl = localStorage.getItem('ziarah_server_url');
+                if (savedUrl) serverSyncUrl = savedUrl;
+                else serverSyncUrl = 'http://192.168.100.74:8080';
+            }
+
             renderBusSelector();
-            switchBus(1); 
+            switchBus(1);
+
+            // Jika Supabase belum aktif, coba cek server lokal LAN
+            if (!isSupabaseConnected) {
+                await loadDataFromServer(true);
+            }
+
+            // Polling cadangan untuk server lokal jika tidak ada Supabase
+            setInterval(() => {
+                if (!isSupabaseConnected && !isSyncingToServer) {
+                    loadDataFromServer(false);
+                }
+            }, 4000);
         };
     </script>
 </body>
