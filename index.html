@@ -588,7 +588,7 @@
                             </span>
                             Pendataan Ukuran Kaos Seragam
                         </h2>
-                        <p class="text-slate-500 text-sm">Pilih tab kelas (8A - 8J) untuk mengelola data per kelas atau buka Rekap Kaos.</p>
+                        <p class="text-slate-500 text-sm">Upload Excel cukup berisi data <b>Nama Siswa, L/P, Kelas</b> (Ukuran kaos dapat langsung diisi/diedit manual).</p>
                     </div>
                     <div class="no-print">
                         <button onclick="exportKaosCSV()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition shadow-sm font-semibold text-sm flex items-center gap-2">
@@ -855,9 +855,9 @@
                 </div>
 
                 <div class="mb-6">
-                    <label for="kaos-size" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Ukuran Kaos <span class="text-rose-500">*</span></label>
-                    <select id="kaos-size" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition text-sm font-semibold">
-                        <option value="">- Pilih Ukuran -</option>
+                    <label for="kaos-size" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Ukuran Kaos <span class="text-slate-400 font-normal lowercase">(bisa diisi nanti)</span></label>
+                    <select id="kaos-size" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition text-sm font-semibold">
+                        <option value="">- Belum Diisi (Pilih Nanti) -</option>
                         <option value="S">S</option>
                         <option value="M">M</option>
                         <option value="L">L</option>
@@ -1889,6 +1889,20 @@
             container.appendChild(rekapBtn);
         }
 
+        function quickUpdateKaosSize(id, newSize) {
+            const item = kaosData.find(k => k.id === id);
+            if (item) {
+                item.size = newSize;
+                saveKaosToLocalStorage();
+                renderKaosTable();
+                if (newSize) {
+                    showToast(`Ukuran ${escapeHTML(item.name)} diatur ke ${newSize}.`, 'success');
+                } else {
+                    showToast(`Ukuran ${escapeHTML(item.name)} dikosongkan.`, 'warning');
+                }
+            }
+        }
+
         function renderKaosTable() {
             const classView = document.getElementById('kaos-class-view');
             const globalView = document.getElementById('kaos-global-view');
@@ -1912,23 +1926,62 @@
             const list = kaosData.filter(item => item.className === currentKaosClass);
 
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400 italic">Belum ada data kaos untuk Kelas ${currentKaosClass}. Klik "Tambah Manual" atau "Upload Excel Kaos".</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400 italic">Belum ada data siswa di Kelas ${currentKaosClass}. Klik "Upload Excel Kaos" (cukup Nama, L/P, Kelas) atau "Tambah Manual".</td></tr>`;
                 tfoot.innerHTML = `<tr><td colspan="5" class="py-3 px-4 text-center text-slate-500 font-normal">Rekap: S: 0 | M: 0 | L: 0 | XL: 0 | XXL: 0 | XXXL: 0</td></tr>`;
                 return;
             }
 
             let counts = { S: 0, M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0 };
+            let unassigned = 0;
 
             list.forEach((item, index) => {
-                if (counts[item.size] !== undefined) counts[item.size]++;
+                if (item.size && counts[item.size] !== undefined) {
+                    counts[item.size]++;
+                } else {
+                    unassigned++;
+                }
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-indigo-50/30 transition-colors border-b border-slate-100';
+
+                // Size cell: Jika belum ada ukuran, tampilkan select dropdown untuk pilih cepat.
+                // Jika sudah ada ukuran, tampilkan badge ukuran + dropdown untuk ubah cepat.
+                let sizeHTML = '';
+                if (item.size && validKaosSizes.includes(item.size)) {
+                    sizeHTML = `
+                        <div class="flex items-center justify-center gap-1.5">
+                            <span class="inline-block px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-black border border-indigo-200 text-xs min-w-[38px]">${item.size}</span>
+                            <select onchange="quickUpdateKaosSize('${item.id}', this.value)" title="Ubah Ukuran Cepat" class="text-[11px] font-semibold px-1.5 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-white outline-none cursor-pointer">
+                                <option value="${item.size}" selected>Ubah ▼</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
+                                <option value="XXXL">XXXL</option>
+                                <option value="">(Kosongkan)</option>
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    sizeHTML = `
+                        <select onchange="quickUpdateKaosSize('${item.id}', this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs">
+                            <option value="" selected>⏳ Pilih Ukuran</option>
+                            <option value="S">S</option>
+                            <option value="M">M</option>
+                            <option value="L">L</option>
+                            <option value="XL">XL</option>
+                            <option value="XXL">XXL</option>
+                            <option value="XXXL">XXXL</option>
+                        </select>
+                    `;
+                }
+
                 tr.innerHTML = `
                     <td class="py-3 px-4 text-center text-slate-400 font-medium text-xs">${index + 1}</td>
                     <td class="py-3 px-4 font-bold text-slate-800">${escapeHTML(item.name)}</td>
-                    <td class="py-3 px-4 text-center text-slate-600 font-semibold text-xs">${item.gender || '-'}</td>
-                    <td class="py-3 px-4 text-center"><span class="inline-block px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-extrabold border border-indigo-200 text-xs min-w-[40px]">${item.size}</span></td>
+                    <td class="py-3 px-4 text-center font-semibold text-xs">${item.gender ? (item.gender === 'L' ? '<span class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 font-bold">L</span>' : '<span class="text-pink-600 bg-pink-50 px-2 py-0.5 rounded-md border border-pink-100 font-bold">P</span>') : '-'}</td>
+                    <td class="py-3 px-4 text-center">${sizeHTML}</td>
                     <td class="py-3 px-4 text-center">
                         <div class="flex justify-center gap-1.5" id="kaos-act-${CSS.escape(item.id)}"></div>
                     </td>
@@ -1939,11 +1992,13 @@
                 if (actDiv) {
                     const editBtn = document.createElement('button');
                     editBtn.className = 'w-7 h-7 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs flex items-center justify-center border border-blue-200';
+                    editBtn.title = 'Edit Manual Lengkap';
                     editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
                     editBtn.onclick = () => openKaosModal(item.id);
                     
                     const delBtn = document.createElement('button');
                     delBtn.className = 'w-7 h-7 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs flex items-center justify-center border border-rose-200';
+                    delBtn.title = 'Hapus';
                     delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
                     delBtn.onclick = () => deleteKaosItem(item.id);
 
@@ -1951,6 +2006,8 @@
                     actDiv.appendChild(delBtn);
                 }
             });
+
+            let unassignedText = unassigned > 0 ? ` | <span class="text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 text-xs">Belum Diisi: <b>${unassigned}</b> Siswa</span>` : '';
 
             tfoot.innerHTML = `
                 <tr>
@@ -1962,6 +2019,7 @@
                         XL: <b>${counts.XL}</b> | 
                         XXL: <b>${counts.XXL}</b> | 
                         XXXL: <b>${counts.XXXL}</b>
+                        ${unassignedText}
                     </td>
                 </tr>
             `;
@@ -1972,11 +2030,14 @@
             
             let counts = { S: 0, M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0 };
             let grandTotal = 0;
+            let grandUnassigned = 0;
 
             kaosData.forEach(item => {
-                if (counts[item.size] !== undefined) {
+                if (item.size && counts[item.size] !== undefined) {
                     counts[item.size]++;
                     grandTotal++;
+                } else {
+                    grandUnassigned++;
                 }
             });
 
@@ -1988,13 +2049,24 @@
                         </h3>
                         <p class="text-slate-300 text-xs mt-1">Akumulasi seluruh pemesanan seragam dari Kelas 8A hingga 8J.</p>
                     </div>
-                    <div class="mt-4 md:mt-0 text-center">
-                        <span class="block text-[10px] uppercase tracking-wider text-indigo-200 font-bold mb-1">Total Pesanan</span>
-                        <span class="inline-block px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-2xl rounded-xl shadow-md border border-white/20">${grandTotal} Pcs</span>
+                    <div class="mt-4 md:mt-0 flex flex-wrap gap-2.5 text-center">
+                        <div class="bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                            <span class="block text-[10px] uppercase tracking-wider text-indigo-200 font-bold">Total Siswa</span>
+                            <span class="text-lg font-black text-white">${kaosData.length}</span>
+                        </div>
+                        <div class="bg-indigo-600 px-3.5 py-2 rounded-xl shadow-md border border-white/20">
+                            <span class="block text-[10px] uppercase tracking-wider text-indigo-100 font-bold">Sudah Ukuran</span>
+                            <span class="text-lg font-black text-white">${grandTotal}</span>
+                        </div>
+                        ${grandUnassigned > 0 ? `
+                        <div class="bg-amber-500/30 px-3.5 py-2 rounded-xl border border-amber-400/40">
+                            <span class="block text-[10px] uppercase tracking-wider text-amber-200 font-bold">Belum Ukuran</span>
+                            <span class="text-lg font-black text-amber-300">${grandUnassigned}</span>
+                        </div>` : ''}
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-3.5 mb-8">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5 mb-8">
                     ${Object.entries(counts).map(([size, count]) => `
                         <div class="bg-white border border-slate-200 rounded-2xl p-4 text-center shadow-xs relative overflow-hidden">
                             <div class="text-3xl font-black text-slate-800 mb-1 relative z-10">${size}</div>
@@ -2005,7 +2077,7 @@
                 </div>
                 
                 <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
-                    <table class="w-full text-left border-collapse min-w-[600px]">
+                    <table class="w-full text-left border-collapse min-w-[650px]">
                         <thead>
                             <tr class="bg-slate-900 text-white border-b border-slate-800 text-xs uppercase tracking-wider">
                                 <th class="py-3.5 px-4 font-bold w-24">Kelas</th>
@@ -2015,14 +2087,19 @@
                                 <th class="py-3.5 px-4 font-bold text-center">XL</th>
                                 <th class="py-3.5 px-4 font-bold text-center">XXL</th>
                                 <th class="py-3.5 px-4 font-bold text-center">XXXL</th>
-                                <th class="py-3.5 px-4 font-bold text-center bg-slate-950">Total Kelas</th>
+                                <th class="py-3.5 px-4 font-bold text-center text-amber-300">Belum Diisi</th>
+                                <th class="py-3.5 px-4 font-bold text-center bg-slate-950">Total Siswa</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-sm bg-white">
                             ${kaosClasses.map(cls => {
                                 const clsData = kaosData.filter(d => d.className === cls);
                                 let c = { S: 0, M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0 };
-                                clsData.forEach(item => { if(c[item.size] !== undefined) c[item.size]++; });
+                                let un = 0;
+                                clsData.forEach(item => { 
+                                    if(item.size && c[item.size] !== undefined) c[item.size]++; 
+                                    else un++;
+                                });
                                 const rowTotal = clsData.length;
                                 
                                 return `
@@ -2034,6 +2111,7 @@
                                         <td class="py-3 px-4 text-center font-semibold text-xs">${c.XL > 0 ? c.XL : '<span class="text-slate-300">-</span>'}</td>
                                         <td class="py-3 px-4 text-center font-semibold text-xs">${c.XXL > 0 ? c.XXL : '<span class="text-slate-300">-</span>'}</td>
                                         <td class="py-3 px-4 text-center font-semibold text-xs">${c.XXXL > 0 ? c.XXXL : '<span class="text-slate-300">-</span>'}</td>
+                                        <td class="py-3 px-4 text-center font-bold text-xs ${un > 0 ? 'text-amber-600 bg-amber-50/50' : 'text-slate-300'}">${un > 0 ? un : '-'}</td>
                                         <td class="py-3 px-4 text-center font-black text-indigo-700 bg-indigo-50/40 border-l border-slate-100">${rowTotal}</td>
                                     </tr>
                                 `;
@@ -2071,7 +2149,7 @@
                     document.getElementById('kaos-form-id').value = item.id;
                     document.getElementById('kaos-name').value = item.name;
                     document.getElementById('kaos-gender').value = item.gender || '';
-                    document.getElementById('kaos-size').value = item.size;
+                    document.getElementById('kaos-size').value = item.size || '';
                 }
             }
 
@@ -2088,8 +2166,8 @@
             const gender = document.getElementById('kaos-gender').value;
             const size = document.getElementById('kaos-size').value;
 
-            if (!name || !size) {
-                showToast("Nama dan Ukuran Kaos wajib diisi!", "error");
+            if (!name) {
+                showToast("Nama siswa wajib diisi!", "error");
                 return;
             }
 
@@ -2250,7 +2328,7 @@
             kaosClasses.forEach(cls => {
                 const list = kaosData.filter(item => item.className === cls);
                 list.forEach((item, idx) => {
-                    csv += `${escapeCSV(cls)},${idx + 1},${escapeCSV(item.name)},${item.gender || '-'},${item.size}\n`;
+                    csv += `${escapeCSV(cls)},${idx + 1},${escapeCSV(item.name)},${item.gender || '-'},${escapeCSV(item.size || 'Belum Diisi')}\n`;
                 });
             });
             downloadCSV(`Rekap_Ukuran_Kaos_8A_8J.csv`, csv);
@@ -2323,12 +2401,6 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            if (currentKaosClass === 'REKAP') {
-                showToast("Pilih kelas terlebih dahulu sebelum upload data kaos.", "warning");
-                event.target.value = "";
-                return;
-            }
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
@@ -2340,7 +2412,6 @@
                     const json = XLSX.utils.sheet_to_json(worksheet, {header: 1}); 
                     
                     let addedCount = 0;
-                    let invalidSizeCount = 0;
                     
                     for (let i = 1; i < json.length; i++) {
                         const row = json[i];
@@ -2350,19 +2421,22 @@
                         if (!name) continue;
 
                         let gender = row[2] ? String(row[2]).trim().toUpperCase() : '';
-                        let size = row[3] ? String(row[3]).trim().toUpperCase() : '';
+                        if (gender !== 'L' && gender !== 'P') gender = '';
 
-                        if (!validKaosSizes.includes(size)) {
-                            invalidSizeCount++;
-                            size = 'L';
+                        // Kolom 4 di Excel: Kelas (contoh: 8A, 8B, dst.)
+                        let rowClass = row[3] ? String(row[3]).trim().toUpperCase().replace(/[^0-9A-Z]/g, '') : '';
+                        let targetClass = kaosClasses.find(c => c.toUpperCase() === rowClass);
+                        if (!targetClass) {
+                            targetClass = (currentKaosClass !== 'REKAP') ? currentKaosClass : '8A';
                         }
 
+                        // Ukuran dibiarkan kosong untuk diisi/diedit manual nanti
                         kaosData.push({
                             id: generateId(),
-                            className: currentKaosClass,
+                            className: targetClass,
                             name: name,
-                            gender: (gender === 'L' || gender === 'P') ? gender : '',
-                            size: size
+                            gender: gender,
+                            size: ''
                         });
                         addedCount++;
                     }
@@ -2370,15 +2444,9 @@
                     if (addedCount > 0) {
                         saveKaosToLocalStorage();
                         renderKaosTable();
-                        let msg = `Berhasil mengimpor ${addedCount} data kaos ke Kelas ${currentKaosClass}.`;
-                        if (invalidSizeCount > 0) {
-                            msg += ` ⚠️ ${invalidSizeCount} baris diset ke ukuran default 'L'.`;
-                            showToast(msg, 'warning');
-                        } else {
-                            showToast(msg, 'success');
-                        }
+                        showToast(`Berhasil mengimpor ${addedCount} data siswa. Ukuran kaos siap diedit manual.`, 'success');
                     } else {
-                        showToast("Tidak ada data valid. Format harus: No | Nama Siswa | L/P | Ukuran", 'warning');
+                        showToast("Tidak ada data valid. Format Excel: No | Nama Siswa | L/P | Kelas", 'warning');
                     }
                 } catch (error) {
                     showToast("Terjadi kesalahan saat membaca file Excel Kaos.", 'error');
