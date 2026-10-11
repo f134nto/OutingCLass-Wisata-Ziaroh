@@ -414,7 +414,7 @@
                                 <i class="fa-solid fa-file-arrow-down"></i> Unduh CSV
                             </button>
                             
-                            <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleExcelUpload(event)">
+                            <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv, .htm, .html" class="hidden" onchange="handleExcelUpload(event)">
                             <button onclick="document.getElementById('excel-upload').click()" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition shadow-sm font-semibold text-xs flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-file-excel text-emerald-400"></i> Upload Excel
                             </button>
@@ -610,7 +610,7 @@
                             <button onclick="deleteAllKaosByClass()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition border border-rose-200 font-semibold text-xs flex items-center gap-1.5">
                                 <i class="fa-solid fa-trash-can"></i> Hapus Semua
                             </button>
-                            <input type="file" id="excel-upload-kaos" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleKaosExcelUpload(event)">
+                            <input type="file" id="excel-upload-kaos" accept=".xlsx, .xls, .csv, .htm, .html" class="hidden" onchange="handleKaosExcelUpload(event)">
                             
                             <button onclick="document.getElementById('excel-upload-kaos').click()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition shadow-sm font-semibold text-xs flex items-center gap-1.5">
                                 <i class="fa-solid fa-file-excel text-emerald-400"></i> Upload Excel Kaos
@@ -2346,6 +2346,23 @@
             reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
+
+                    // Deteksi jika file berformat Excel Web Page / Frameset
+                    const sampleText = new TextDecoder('utf-8', {fatal: false}).decode(data.subarray(0, Math.min(data.length, 4000)));
+                    if (sampleText.includes('<frameset') || sampleText.includes('Excel Workbook Frameset') || sampleText.includes('frSheet')) {
+                        alert(
+                            "⚠️ PEMBERITAHUAN FORMAT EXCEL:\n\n" +
+                            "File '" + file.name + "' disimpan dengan format 'Web Page (Frameset)' oleh Microsoft Excel, bukan file buku kerja standar (.xlsx).\n\n" +
+                            "CARA MENGATASI:\n" +
+                            "1. Buka file di Microsoft Excel\n" +
+                            "2. Klik menu File -> Save As\n" +
+                            "3. Pada 'Save as type', pilih 'Excel Workbook (*.xlsx)'\n" +
+                            "4. Upload file .xlsx tersebut ke aplikasi ini."
+                        );
+                        event.target.value = "";
+                        return;
+                    }
+
                     const workbook = XLSX.read(data, {type: 'array'});
                     const firstSheet = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheet];
@@ -2360,7 +2377,10 @@
                         if (!row || row.length === 0) continue; 
 
                         let name = row[1] ? String(row[1]).trim() : '';
-                        if (!name) { skippedCount++; continue; }
+                        if (!name || name.startsWith('"+') || name.startsWith('="') || name.includes('parent.document') || name.length < 2) { 
+                            skippedCount++; 
+                            continue; 
+                        }
 
                         let gender = row[2] ? String(row[2]).trim().toUpperCase() : '';
                         let kelas = row[3] ? String(row[3]).trim() : '';
@@ -2412,6 +2432,25 @@
             reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
+
+                    // ============================================================
+                    // DETEKSI FORMAT EXCEL WEB PAGE / FRAMESET (.htm / .xls frameset)
+                    // ============================================================
+                    const sampleText = new TextDecoder('utf-8', {fatal: false}).decode(data.subarray(0, Math.min(data.length, 4000)));
+                    if (sampleText.includes('<frameset') || sampleText.includes('Excel Workbook Frameset') || sampleText.includes('frSheet')) {
+                        alert(
+                            "⚠️ PEMBERITAHUAN FORMAT EXCEL:\n\n" +
+                            "File '" + file.name + "' tersimpan dalam format 'Web Page (Frameset)' oleh Excel, sehingga tabel data siswa tidak terbaca langsung dari file induk ini.\n\n" +
+                            "SOLUSI PRAKTIS:\n" +
+                            "1. Kami sudah membuatkan file resmi 'Data_Siswa_8A_Siap_Upload.xlsx' di folder Downloads Anda!\n" +
+                            "   Silakan klik 'Upload Excel Kaos' lagi dan pilih file 'Data_Siswa_8A_Siap_Upload.xlsx'.\n\n" +
+                            "2. Atau jika membuat file baru di Excel:\n" +
+                            "   Klik File -> Save As -> Pada 'Save as type', pilih 'Excel Workbook (*.xlsx)'."
+                        );
+                        inputEl.value = "";
+                        return;
+                    }
+
                     const workbook = XLSX.read(data, {type: 'array'});
                     const firstSheet = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheet];
@@ -2421,6 +2460,16 @@
                         showToast("File Excel kosong!", "warning");
                         inputEl.value = "";
                         return;
+                    }
+
+                    // Deteksi kelas otomatis dari nama file (misal: Data_Siswa_8A -> '8A')
+                    let classFromFileName = null;
+                    for (const cls of kaosClasses) {
+                        const regex = new RegExp('(?:^|[^0-9A-Za-z])' + cls + '(?:$|[^0-9A-Za-z])', 'i');
+                        if (regex.test(file.name)) {
+                            classFromFileName = cls;
+                            break;
+                        }
                     }
 
                     // ============================================================
@@ -2477,8 +2526,10 @@
                         let name = (colName !== -1 && row[colName] !== undefined) ? String(row[colName]).trim() : '';
                         if (!name) continue;
 
-                        // Abaikan jika ternyata masih baris header yang terbaca
-                        if (name.toLowerCase() === 'nama siswa' || name.toLowerCase() === 'nama' || name.toLowerCase() === 'nama peserta') continue;
+                        // Abaikan jika ternyata masih baris header yang terbaca atau kode script
+                        const nameLower = name.toLowerCase();
+                        if (nameLower === 'nama siswa' || nameLower === 'nama' || nameLower === 'nama peserta') continue;
+                        if (name.startsWith('"+') || name.startsWith('="') || name.includes('parent.document') || name.length < 2) continue;
 
                         let gender = (colGender !== -1 && row[colGender] !== undefined) ? String(row[colGender]).trim().toUpperCase() : '';
                         if (gender !== 'L' && gender !== 'P') gender = '';
@@ -2497,6 +2548,11 @@
                                     break;
                                 }
                             }
+                        }
+
+                        // Fallback ke kelas dari nama file jika ada (contoh: Data_Siswa_8A -> 8A)
+                        if (!targetClass && classFromFileName) {
+                            targetClass = classFromFileName;
                         }
 
                         // Jika tetap tidak ketemu, masukkan ke tab kelas yang sedang aktif
