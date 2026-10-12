@@ -214,16 +214,16 @@
                         PANITIA OUTING CLASS WISATA ZIARAH
                     </div>
 
-                    <!-- Multi-PC Sync & Login Controls -->
-                    <div class="flex flex-wrap items-center gap-2.5">
+                    <!-- Multi-PC Sync & Login Controls (Disembunyikan) -->
+                    <div id="multi-pc-header-controls" class="hidden" style="display: none !important;">
                         <!-- Status Sinkronisasi Server Pusat -->
-                        <button onclick="openSyncModal()" id="sync-status-btn" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-400/30 text-xs font-semibold transition backdrop-blur-sm cursor-pointer shadow-sm" title="Klik untuk pengaturan sinkronisasi PC 1, 2, 3, 4">
+                        <button onclick="openSyncModal()" id="sync-status-btn" class="hidden" style="display: none !important;" title="Pengaturan Sinkronisasi PC">
                             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                            <span id="sync-status-text"><i class="fa-solid fa-network-wired mr-1"></i> Multi-PC: Server Lokal (192.168.100.74)</span>
+                            <span id="sync-status-text"><i class="fa-solid fa-network-wired mr-1"></i> Multi-PC: Server Lokal</span>
                         </button>
 
                         <!-- Profil Operator Login -->
-                        <button onclick="openLoginModal()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/30 hover:bg-indigo-500/50 text-white border border-indigo-400/40 text-xs font-bold transition backdrop-blur-sm shadow-sm cursor-pointer" title="Klik untuk ganti PC / Operator">
+                        <button onclick="openLoginModal()" class="hidden" style="display: none !important;" title="Ganti Profil PC">
                             <i class="fa-solid fa-desktop text-indigo-300"></i>
                             <span id="operator-badge-text">PC 1 (Admin Utama)</span>
                             <i class="fa-solid fa-repeat text-[10px] text-indigo-300 ml-0.5"></i>
@@ -3456,20 +3456,24 @@
             const boxDesc = document.getElementById('sync-box-desc');
             const statusBox = document.getElementById('sync-status-box');
 
+            if (btn) {
+                btn.style.display = 'none';
+            }
+
             if (isSupabaseConnected) {
-                if (btn) btn.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-400/30 text-xs font-semibold transition backdrop-blur-sm cursor-pointer shadow-sm';
+                if (btn) btn.className = 'hidden';
                 if (textEl) textEl.innerHTML = `<i class="fa-solid fa-bolt text-emerald-400 mr-1"></i> Multi-PC: Supabase Realtime (Aktif)`;
                 if (boxTitle) boxTitle.innerText = "Supabase Cloud Realtime Aktif!";
                 if (boxDesc) boxDesc.innerText = "Seluruh PC 1, 2, 3, 4 terhubung secara real-time via Supabase Cloud. Setiap perubahan otomatis sinkron detik itu juga.";
                 if (statusBox) statusBox.className = 'p-4 rounded-2xl bg-emerald-50 border border-emerald-200 mb-6 flex items-start gap-3';
             } else if (isServerConnected) {
-                if (btn) btn.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-400/30 text-xs font-semibold transition backdrop-blur-sm cursor-pointer shadow-sm';
+                if (btn) btn.className = 'hidden';
                 if (textEl) textEl.innerHTML = `<i class="fa-solid fa-network-wired mr-1"></i> Multi-PC: Server LAN Aktif`;
                 if (boxTitle) boxTitle.innerText = "Server Pusat LAN Terhubung";
                 if (boxDesc) boxDesc.innerText = `Data tersinkronkan antar PC 1, 2, 3, 4 melalui ${serverSyncUrl}.`;
                 if (statusBox) statusBox.className = 'p-4 rounded-2xl bg-emerald-50 border border-emerald-200 mb-6 flex items-start gap-3';
             } else {
-                if (btn) btn.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-400/30 text-xs font-semibold transition backdrop-blur-sm cursor-pointer shadow-sm';
+                if (btn) btn.className = 'hidden';
                 if (textEl) textEl.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> Multi-PC: Belum Terhubung (Klik Di Sini)`;
                 if (boxTitle) boxTitle.innerText = "Belum Terhubung Database Multi-PC";
                 if (boxDesc) boxDesc.innerText = "Silakan masukkan Anon Key Supabase di bawah untuk mengaktifkan sinkronisasi otomatis antar PC 1, 2, 3, 4.";
@@ -3646,6 +3650,17 @@
                     loadDataFromServer(false);
                 }
             }, 4000);
+
+            // Pintasan keyboard opsional (Ctrl+Alt+S untuk Sinkronisasi, Ctrl+Alt+O untuk Operator)
+            window.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.altKey && (e.key === 's' || e.key === 'S')) {
+                    e.preventDefault();
+                    openSyncModal();
+                } else if (e.ctrlKey && e.altKey && (e.key === 'o' || e.key === 'O')) {
+                    e.preventDefault();
+                    openLoginModal();
+                }
+            });
         };
     </script>
 </body>
