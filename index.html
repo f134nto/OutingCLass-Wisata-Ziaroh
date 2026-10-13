@@ -298,9 +298,16 @@
 
                 <!-- Bus Selector, Rekap Global & Kaos Pill Bar -->
                 <div class="pt-2 border-t border-white/10">
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 text-center sm:text-left">
-                        <i class="fa-solid fa-sliders mr-1.5 text-indigo-400"></i> Pilih Armada & Menu Navigasi
-                    </p>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 text-center sm:text-left">
+                            <i class="fa-solid fa-sliders mr-1.5 text-indigo-400"></i> Pilih Armada & Menu Navigasi
+                        </p>
+                        <button onclick="openWASettingsModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 text-xs font-semibold transition backdrop-blur-sm cursor-pointer shadow-sm" title="Klik untuk mengatur notifikasi Grup WhatsApp (plesiran mts)">
+                            <i class="fa-brands fa-whatsapp text-emerald-400 text-sm"></i>
+                            <span id="wa-btn-label">Grup WA: plesiran mts</span>
+                            <i class="fa-solid fa-gear text-[10px] text-emerald-300 ml-0.5"></i>
+                        </button>
+                    </div>
                     <div id="bus-selector" class="flex flex-wrap gap-2 justify-center sm:justify-start">
                         <!-- Rendered by JS -->
                     </div>
@@ -337,11 +344,14 @@
                         <span>Tata letak 52 Kursi (Konfigurasi 2-2)</span>
                     </div>
                     <div class="flex flex-wrap gap-2.5">
+                        <button onclick="sendBusRekapToWA()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl transition shadow-sm shadow-emerald-500/20 font-semibold text-sm flex items-center gap-2" title="Kirim rekap kursi lunas bus ini ke Grup WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-base"></i> Rekap ke Grup WA
+                        </button>
                         <button onclick="window.print()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition shadow-sm font-semibold text-sm flex items-center gap-2">
                             <i class="fa-solid fa-print"></i> Cetak / Print
                         </button>
-                        <button onclick="exportDenahCSV()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition shadow-sm shadow-emerald-500/20 font-semibold text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-file-excel"></i> Unduh CSV
+                        <button onclick="exportDenahCSV()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition shadow-sm font-semibold text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-file-excel text-emerald-600"></i> Unduh CSV
                         </button>
                         <button onclick="openClearAllModal()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition border border-rose-200 font-semibold text-sm flex items-center gap-2">
                             <i class="fa-solid fa-eraser"></i> Kosongkan Kursi
@@ -426,11 +436,14 @@
                         </div>
                         
                         <div class="flex flex-wrap gap-2 w-full md:w-auto justify-end">
+                            <button onclick="sendBusRekapToWA()" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl transition shadow-sm font-semibold text-xs flex items-center justify-center gap-1.5" title="Kirim rekap data siswa bus ini ke Grup WhatsApp">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> Rekap ke Grup WA
+                            </button>
                             <button onclick="openDeleteAllModal()" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition border border-rose-200 font-semibold text-xs flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-trash-can"></i> Hapus Semua
                             </button>
-                            <button onclick="exportDaftarCSV()" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition shadow-sm font-semibold text-xs flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-file-arrow-down"></i> Unduh CSV
+                            <button onclick="exportDaftarCSV()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-semibold text-xs flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-file-arrow-down text-emerald-600"></i> Unduh CSV
                             </button>
                             
                             <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv, .htm, .html" class="hidden" onchange="handleExcelUpload(event)">
@@ -525,9 +538,12 @@
                         <p class="text-slate-500 mt-1 text-sm">Peserta yang <b class="text-emerald-600">sudah Lunas</b> dan <b class="text-blue-600">telah terkonfirmasi nomor kursinya</b></p>
                     </div>
 
-                    <div class="flex justify-end mb-4 no-print">
-                        <button onclick="exportRekapBusCSV()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition shadow-sm font-semibold text-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-file-arrow-down"></i> Unduh CSV
+                    <div class="flex justify-end gap-2.5 mb-4 no-print">
+                        <button onclick="sendBusRekapToWA()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl transition shadow-sm font-semibold text-xs flex items-center gap-1.5" title="Kirim rekapitulasi data siswa lunas bus ini ke Grup WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Rekap ke Grup WA
+                        </button>
+                        <button onclick="exportRekapBusCSV()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-semibold text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-arrow-down text-emerald-600"></i> Unduh CSV
                         </button>
                     </div>
 
@@ -609,9 +625,12 @@
                         </h2>
                         <p class="text-slate-500 text-sm">Upload Excel cukup berisi data <b>Nama Siswa, L/P, Kelas</b> (Ukuran kaos dapat langsung diisi/diedit manual).</p>
                     </div>
-                    <div class="no-print">
-                        <button onclick="exportKaosCSV()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition shadow-sm font-semibold text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-file-arrow-down"></i> Unduh CSV Kaos
+                    <div class="no-print flex flex-wrap gap-2">
+                        <button onclick="exportKaosExcel('REKAP')" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition shadow-sm font-semibold text-xs sm:text-sm flex items-center gap-1.5" title="Unduh semua kelas ke file Excel (.xlsx)">
+                            <i class="fa-solid fa-file-excel"></i> Unduh Semua (Excel)
+                        </button>
+                        <button onclick="exportKaosCSV('REKAP')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-semibold text-xs sm:text-sm flex items-center gap-1.5" title="Unduh semua kelas ke file CSV (.csv)">
+                            <i class="fa-solid fa-file-arrow-down text-emerald-600"></i> Unduh Semua (CSV)
                         </button>
                     </div>
                 </div>
@@ -626,15 +645,21 @@
                     <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
                         <h3 class="text-lg font-bold text-slate-900" id="current-kaos-class-title">Kelas 8A</h3>
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="deleteAllKaosByClass()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition border border-rose-200 font-semibold text-xs flex items-center gap-1.5">
+                            <button onclick="exportKaosExcel()" class="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition shadow-sm font-semibold text-xs flex items-center gap-1.5" title="Unduh data kaos kelas ini ke Excel (.xlsx)">
+                                <i class="fa-solid fa-file-excel"></i> Unduh Excel <span id="btn-export-class-label-excel">8A</span>
+                            </button>
+                            <button onclick="exportKaosCSV()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-semibold text-xs flex items-center gap-1.5" title="Unduh data kaos kelas ini ke CSV (.csv)">
+                                <i class="fa-solid fa-file-arrow-down text-emerald-600"></i> Unduh CSV <span id="btn-export-class-label-csv">8A</span>
+                            </button>
+                            <button onclick="deleteAllKaosByClass()" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition border border-rose-200 font-semibold text-xs flex items-center gap-1.5">
                                 <i class="fa-solid fa-trash-can"></i> Hapus Semua
                             </button>
                             <input type="file" id="excel-upload-kaos" accept=".xlsx, .xls, .csv, .htm, .html" class="hidden" onchange="handleKaosExcelUpload(event)">
                             
-                            <button onclick="document.getElementById('excel-upload-kaos').click()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition shadow-sm font-semibold text-xs flex items-center gap-1.5">
+                            <button onclick="document.getElementById('excel-upload-kaos').click()" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition shadow-sm font-semibold text-xs flex items-center gap-1.5">
                                 <i class="fa-solid fa-file-excel text-emerald-400"></i> Upload Excel Kaos
                             </button>
-                            <button onclick="openKaosModal()" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition shadow-md shadow-indigo-500/20 font-semibold text-xs flex items-center gap-1.5">
+                            <button onclick="openKaosModal()" class="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition shadow-md shadow-indigo-500/20 font-semibold text-xs flex items-center gap-1.5">
                                 <i class="fa-solid fa-plus"></i> Tambah Manual
                             </button>
                         </div>
@@ -711,6 +736,111 @@
                 </div>
             </div>
         </div>
+
+        <!-- VIEW SISWA TIDAK IKUT -->
+        <div id="siswa-tidak-ikut-view" class="hidden">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200/90 p-6 sm:p-8 mb-8">
+                
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-100 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-slate-900 mb-1 flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base border border-rose-200">
+                                <i class="fa-solid fa-user-xmark"></i>
+                            </span>
+                            Daftar Siswa Tidak Ikut Outing Class
+                        </h2>
+                        <p class="text-slate-500 text-sm">
+                            Siswa yang tidak memesan kaos atau belum ada ukuran kaosnya otomatis dianggap <b>tidak ikut ziarah</b> dan namanya otomatis dihapus dari kursi armada bus & kamar hotel.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 no-print">
+                        <button onclick="exportSiswaTidakIkutExcel()" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition shadow-sm font-semibold text-xs flex items-center gap-1.5" title="Unduh data siswa tidak ikut ke Excel (.xlsx)">
+                            <i class="fa-solid fa-file-excel"></i> Unduh Excel
+                        </button>
+                        <button onclick="exportSiswaTidakIkutCSV()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-semibold text-xs flex items-center gap-1.5" title="Unduh data siswa tidak ikut ke CSV (.csv)">
+                            <i class="fa-solid fa-file-arrow-down text-emerald-600"></i> Unduh CSV
+                        </button>
+                        <button onclick="openTambahTidakIkutModal()" class="px-4 py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white rounded-xl transition shadow-md shadow-rose-500/20 font-semibold text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-plus"></i> Tambah Siswa Tidak Ikut
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kartu Ringkasan & Statistik -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="p-4 rounded-2xl bg-rose-50/70 border border-rose-200 flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-rose-600 text-white flex items-center justify-center text-xl shadow-sm">
+                            <i class="fa-solid fa-user-xmark"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] font-bold text-rose-700 uppercase tracking-wider">Siswa Tidak Ikut</div>
+                            <div class="text-2xl font-black text-rose-900"><span id="metric-tidak-ikut-count">0</span> <span class="text-xs font-semibold text-rose-600">Siswa</span></div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xl shadow-sm">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Siswa Ikut (Ada Kaos)</div>
+                            <div class="text-2xl font-black text-emerald-900"><span id="metric-ikut-count">0</span> <span class="text-xs font-semibold text-emerald-600">Siswa</span></div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-slate-800 text-white flex items-center justify-center text-xl shadow-sm">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Terdata (8A - 8J)</div>
+                            <div class="text-2xl font-black text-slate-800"><span id="metric-total-siswa-count">0</span> <span class="text-xs font-semibold text-slate-500">Siswa</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Bar: Tab Kelas & Search -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mb-5 pb-4 border-b border-slate-100 no-print">
+                    <div id="tidak-ikut-tabs-container" class="flex flex-wrap gap-1.5 w-full sm:w-auto">
+                        <!-- Rendered via JS: Semua (8A-8J), 8A, 8B, ... 8J -->
+                    </div>
+                    <div class="w-full sm:w-64 relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="tidak-ikut-search-input" oninput="renderSiswaTidakIkutTable()" placeholder="Cari nama siswa..." class="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none bg-slate-50/50 focus:bg-white">
+                    </div>
+                </div>
+
+                <!-- Tabel Siswa Tidak Ikut -->
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 mb-6">
+                    <table class="w-full text-left border-collapse min-w-[650px]">
+                        <thead>
+                            <tr class="bg-slate-900 text-white border-b border-slate-800 text-xs uppercase tracking-wider">
+                                <th class="py-3.5 px-4 font-bold w-14 text-center">No</th>
+                                <th class="py-3.5 px-4 font-bold">Nama Siswa</th>
+                                <th class="py-3.5 px-4 font-bold text-center w-20">L/P</th>
+                                <th class="py-3.5 px-4 font-bold text-center w-24">Kelas</th>
+                                <th class="py-3.5 px-4 font-bold text-center w-48">Status / Keterangan</th>
+                                <th class="py-3.5 px-4 font-bold text-center w-40">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tidak-ikut-table-body" class="divide-y divide-slate-100 text-sm bg-white">
+                            <!-- Rendered via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="tidak-ikut-empty-state" class="hidden flex-col items-center justify-center py-12 text-slate-400">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl mb-2.5 border border-emerald-100">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-700">Semua Siswa Terdaftar Mengikuti Outing Class!</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Tidak ada siswa yang berstatus tidak memesan kaos atau tanpa ukuran di filter ini.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL: INPUT DATA SISWA -->
@@ -756,12 +886,35 @@
                     <p class="text-[11px] text-slate-400 mt-1">Kosongkan jika belum melakukan pelunasan</p>
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-4">
                     <label for="passenger-seat" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Nomor Kursi (1-52)</label>
                     <input type="number" id="passenger-seat" min="1" max="52" placeholder="Kursi aktif jika sudah Lunas" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition text-sm disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
                     <p class="text-xs text-amber-600 mt-1 flex items-center gap-1" id="seat-warning">
                         <i class="fa-solid fa-circle-exclamation"></i> Masukkan Tanggal Lunas terlebih dahulu untuk memilih kursi.
                     </p>
+                </div>
+
+                <!-- WA Notification Trigger -->
+                <div class="mb-6 p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-emerald-600 text-base"></i>
+                            <span class="text-xs font-bold text-emerald-950">Notifikasi ke Grup WA plesiran mts</span>
+                        </div>
+                        <button type="button" onclick="openWASettingsModal()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold underline">
+                            Pengaturan
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-emerald-700 leading-snug">
+                        Saat kursi disimpan untuk siswa lunas, sistem otomatis menyiapkan notifikasi booking kursi untuk dikirim ke Grup WhatsApp <b>plesiran mts</b>.
+                    </p>
+                    <div class="mt-2.5 pt-2 border-t border-emerald-200/60 flex items-center justify-between text-xs text-emerald-800">
+                        <span id="wa-modal-target-number" class="text-[11px] font-medium text-emerald-700">Tujuan: <b>Grup WA plesiran mts</b></span>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-emerald-900">
+                            <input type="checkbox" id="send-wa-on-save" checked class="w-3.5 h-3.5 text-emerald-600 rounded focus:ring-emerald-500">
+                            Kirim konfirmasi saat simpan
+                        </label>
+                    </div>
                 </div>
                 
                 <div class="flex justify-between items-center gap-3 pt-3 border-t border-slate-100">
@@ -1199,6 +1352,335 @@
         </div>
     </div>
 
+    <!-- MODAL: NOTIFIKASI WA (SINGLE SISWA KE GRUP WA) -->
+    <div id="wa-notify-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-7 transform scale-95 transition-transform duration-300 mx-4 border border-slate-100 max-h-[92vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-xl shadow-md shadow-emerald-500/20">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900">Konfirmasi Kursi ke Grup WA</h3>
+                        <p class="text-xs text-slate-500">Kirim notifikasi bukti booking & pelunasan ke Grup <b>plesiran mts</b></p>
+                    </div>
+                </div>
+                <button onclick="closeModalById('wa-notify-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Student Summary Card -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 mb-3.5 flex items-center justify-between">
+                <div>
+                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Siswa & Kelas</div>
+                    <div class="text-base font-extrabold text-slate-900" id="wa-notif-student-name">-</div>
+                    <div class="text-xs text-slate-600 mt-0.5">
+                        <span id="wa-notif-student-class">-</span> • <span id="wa-notif-student-gender">-</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Armada & Kursi</div>
+                    <div class="text-sm font-extrabold text-indigo-700" id="wa-notif-bus-title">BIS 1</div>
+                    <div class="inline-block mt-0.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold" id="wa-notif-seat-badge">
+                        Kursi #--
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Group Info Card -->
+            <div class="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 mb-4 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0 shadow-sm shadow-emerald-600/30">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-[10px] text-emerald-800 font-bold uppercase tracking-wider">Tujuan Notifikasi Grup</div>
+                        <div class="text-sm font-black text-emerald-950 truncate" id="wa-notif-group-title">Grup WA: plesiran mts</div>
+                        <a href="https://chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2" id="wa-notif-group-link-href" target="_blank" rel="noopener noreferrer" class="text-[11px] text-emerald-700 hover:text-emerald-950 underline truncate block font-mono">
+                            chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="openDirectWAGroup()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm shadow-emerald-600/20" title="Buka tautan grup langsung dan otomatis salin pesan">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Buka Grup
+                    </button>
+                </div>
+            </div>
+
+            <!-- Phone Input Field (Optional) -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center justify-between">
+                    <span>Nomor WhatsApp Khusus (Opsional):</span>
+                    <button type="button" onclick="openWASettingsModal()" class="text-[11px] text-indigo-600 hover:text-indigo-800 normal-case font-semibold">
+                        <i class="fa-solid fa-gear mr-0.5"></i> Pengaturan
+                    </button>
+                </label>
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm">
+                            <i class="fa-solid fa-phone"></i>
+                        </span>
+                        <input type="text" id="wa-notif-phone-input" placeholder="Kosongkan untuk langsung kirim ke grup plesiran mts" class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <button type="button" onclick="saveQuickWAPhone()" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+                        Simpan No
+                    </button>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">💡 <b>Kirim ke Grup WA plesiran mts:</b> Biarkan nomor kosong. Tombol di bawah otomatis membuka dialog share WhatsApp dan menyalin pesan ke clipboard.</p>
+            </div>
+
+            <!-- Message Preview -->
+            <div class="mb-5">
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="text-xs font-bold uppercase tracking-wider text-slate-700">Preview Pesan Notifikasi:</label>
+                    <button type="button" onclick="copyWAMessageText()" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-copy"></i> Salin Teks
+                    </button>
+                </div>
+                <textarea id="wa-notif-message-preview" rows="8" class="w-full p-3.5 rounded-2xl border border-slate-200 bg-slate-50 font-mono text-xs text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" readonly></textarea>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeModalById('wa-notify-modal')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-semibold text-xs">
+                    Selesai / Lewati
+                </button>
+                <button type="button" onclick="sendWAClick()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl transition font-bold text-xs flex items-center gap-2 shadow-md shadow-emerald-500/20">
+                    <i class="fa-brands fa-whatsapp text-base"></i> Buka WhatsApp & Kirim
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PENGATURAN WA GRUP / BENDAHARA -->
+    <div id="wa-settings-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-7 transform scale-95 transition-transform duration-300 mx-4 border border-slate-100 max-h-[92vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl border border-emerald-200">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900">Pengaturan Notifikasi Grup WA</h3>
+                        <p class="text-xs text-slate-500">Notifikasi & Konfirmasi Otomatis</p>
+                    </div>
+                </div>
+                <button onclick="closeModalById('wa-settings-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Nama Grup WhatsApp:</label>
+                    <input type="text" id="setting-wa-group-name" placeholder="plesiran mts" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Link Tautan Undangan Grup WA:</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="setting-wa-group-link" placeholder="https://chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <a id="setting-wa-group-link-btn" href="https://chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2" target="_blank" rel="noopener noreferrer" class="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="Buka tautan undangan grup di tab baru">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Tes
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Ditujukan Kepada (Salam Pembuka):</label>
+                    <input type="text" id="setting-wa-name" placeholder="Panitia Ziarah Wisata" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <p class="text-[11px] text-slate-400 mt-1">Dicantumkan pada salam pembuka: <i>Kepada Yth. *Panitia Ziarah Wisata*,</i></p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Nomor WhatsApp Spesifik (Opsional):</label>
+                    <input type="text" id="setting-wa-phone" placeholder="Kosongkan jika ingin kirim ke Grup WhatsApp plesiran mts" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <p class="text-[11px] text-emerald-700 mt-1 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                        💡 <b>Untuk Kirim ke Grup WA plesiran mts:</b> Biarkan nomor ini kosong! Saat tombol WhatsApp diklik, WhatsApp langsung menampilkan pilihan kontak/grup sehingga Anda bisa langsung memilih grup <b>plesiran mts</b>.
+                    </p>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                    <label class="flex items-start gap-2.5 cursor-pointer">
+                        <input type="checkbox" id="setting-wa-auto-open" class="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">Buka WhatsApp Langsung (Auto-Redirect)</span>
+                            <span class="block text-[11px] text-slate-500">Otomatis membuka WhatsApp di tab baru saat kursi disimpan untuk siswa lunas tanpa perlu klik konfirmasi manual.</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex gap-2.5">
+                <button type="button" onclick="closeModalById('wa-settings-modal')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-semibold text-xs flex-1">
+                    Batal
+                </button>
+                <button type="button" onclick="saveWASettings()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl transition font-bold text-xs flex-1 shadow-md shadow-emerald-500/20">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Pengaturan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: REKAP WA BUS KE GRUP WA -->
+    <div id="wa-rekap-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-7 transform scale-95 transition-transform duration-300 mx-4 border border-slate-100 max-h-[92vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl shadow-md shadow-emerald-500/20">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900">Kirim Rekap ke Grup WA</h3>
+                        <p class="text-xs text-slate-500" id="wa-rekap-modal-sub">Rekapitulasi Manifest BIS 1</p>
+                    </div>
+                </div>
+                <button onclick="closeModalById('wa-rekap-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Target Phone -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center justify-between">
+                    <span>Nomor WhatsApp Tujuan (Opsional):</span>
+                    <button type="button" onclick="openWASettingsModal()" class="text-[11px] text-indigo-600 hover:text-indigo-800 normal-case font-semibold">
+                        <i class="fa-solid fa-gear mr-0.5"></i> Ubah Nomor
+                    </button>
+                </label>
+                <input type="text" id="wa-rekap-phone-input" placeholder="Kosongkan untuk kirim ke Grup WhatsApp" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+
+            <!-- Message Preview -->
+            <div class="mb-5">
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="text-xs font-bold uppercase tracking-wider text-slate-700">Isi Rekap Laporan:</label>
+                    <button type="button" onclick="copyWARekapText()" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-copy"></i> Salin Rekap
+                    </button>
+                </div>
+                <textarea id="wa-rekap-message-preview" rows="9" class="w-full p-3.5 rounded-2xl border border-slate-200 bg-slate-50 font-mono text-xs text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" readonly></textarea>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeModalById('wa-rekap-modal')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-semibold text-xs">
+                    Tutup
+                </button>
+                <button type="button" onclick="sendWARekapClick()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl transition font-bold text-xs flex items-center gap-2 shadow-md shadow-emerald-500/20">
+                    <i class="fa-brands fa-whatsapp text-base"></i> Buka WhatsApp & Kirim ke Grup
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: IKUTKAN SISWA KEMBALI (PILIH UKURAN KAOS) -->
+    <div id="ikutkan-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300 mx-4 border border-slate-100">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm border border-emerald-200">
+                        <i class="fa-solid fa-shirt"></i>
+                    </span>
+                    Pilih Ukuran Kaos
+                </h3>
+                <button onclick="closeModalById('ikutkan-modal')" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Siswa Terpilih:</div>
+                <div class="text-sm font-extrabold text-slate-800" id="ikutkan-student-name">-</div>
+                <div class="text-xs text-indigo-600 font-bold mt-0.5" id="ikutkan-student-class">-</div>
+            </div>
+
+            <input type="hidden" id="ikutkan-student-id">
+            <div class="mb-5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Pilih Ukuran Kaos Seragam:</label>
+                <select id="ikutkan-size-select" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer">
+                    <option value="S">Ukuran S</option>
+                    <option value="M" selected>Ukuran M</option>
+                    <option value="L">Ukuran L</option>
+                    <option value="XL">Ukuran XL</option>
+                    <option value="XXL">Ukuran XXL</option>
+                    <option value="XXXL">Ukuran XXXL</option>
+                </select>
+                <p class="text-[11px] text-emerald-800 mt-2 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                    <i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Setelah ukuran kaos dipilih, siswa langsung aktif mengikuti outing dan dapat dipesan kursinya di bus.
+                </p>
+            </div>
+
+            <div class="flex gap-2">
+                <button type="button" onclick="closeModalById('ikutkan-modal')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex-1">
+                    Batal
+                </button>
+                <button type="button" onclick="confirmIkutkanSiswa()" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl text-xs font-bold flex-1 shadow-md shadow-emerald-500/20">
+                    Simpan & Ikutkan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TAMBAH SISWA TIDAK IKUT -->
+    <div id="tambah-tidak-ikut-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-7 transform scale-95 transition-transform duration-300 mx-4 border border-slate-100">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm border border-rose-200">
+                        <i class="fa-solid fa-user-xmark"></i>
+                    </span>
+                    Tambah Siswa Tidak Ikut
+                </h3>
+                <button onclick="closeModalById('tambah-tidak-ikut-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="form-tambah-tidak-ikut" onsubmit="event.preventDefault(); saveTambahTidakIkut();">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Nama Siswa <span class="text-rose-500">*</span></label>
+                    <input type="text" id="tidak-ikut-input-name" required placeholder="Nama lengkap siswa..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Jenis Kelamin (L/P)</label>
+                    <select id="tidak-ikut-input-gender" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        <option value="">- Pilih L/P -</option>
+                        <option value="L">L (Laki-laki)</option>
+                        <option value="P">P (Perempuan)</option>
+                    </select>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Kelas <span class="text-rose-500">*</span></label>
+                    <select id="tidak-ikut-input-class" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        <option value="8A">Kelas 8A</option>
+                        <option value="8B">Kelas 8B</option>
+                        <option value="8C">Kelas 8C</option>
+                        <option value="8D">Kelas 8D</option>
+                        <option value="8E">Kelas 8E</option>
+                        <option value="8F">Kelas 8F</option>
+                        <option value="8G">Kelas 8G</option>
+                        <option value="8H">Kelas 8H</option>
+                        <option value="8I">Kelas 8I</option>
+                        <option value="8J">Kelas 8J</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModalById('tambah-tidak-ikut-modal')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white rounded-xl font-bold shadow-md shadow-rose-500/20 text-xs">
+                        Simpan Siswa Tidak Ikut
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // ============================================================
         // GLOBAL STATE & DATA STORAGE
@@ -1431,6 +1913,21 @@
             };
             container.appendChild(kaosBtn);
 
+            // Tombol Siswa Tidak Ikut (Diletakkan di sebelah kanan Data Kaos)
+            const tidakIkutCount = (typeof getSiswaTidakIkutList === 'function') ? getSiswaTidakIkutList().length : 0;
+            const tidakIkutBtn = document.createElement('button');
+            const isTidakIkut = (activeViewMode === 'tidak-ikut');
+            tidakIkutBtn.className = isTidakIkut
+                ? 'px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all shadow-md bg-gradient-to-r from-rose-500 to-red-600 text-white border border-rose-300/40 ring-2 ring-rose-400/30 scale-105'
+                : 'px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm whitespace-nowrap transition-all bg-rose-500/20 text-rose-200 hover:text-white border border-rose-400/30 hover:bg-rose-500/30 backdrop-blur-sm';
+            tidakIkutBtn.innerHTML = `<i class="fa-solid fa-user-xmark mr-1.5"></i> Siswa Tidak Ikut <span class="ml-1 px-1.5 py-0.5 text-[10px] bg-rose-950/70 rounded-full font-bold border border-rose-400/40">${tidakIkutCount}</span>`;
+            tidakIkutBtn.onclick = () => {
+                activeViewMode = 'tidak-ikut';
+                renderBusSelector();
+                applySiswaTidakIkutView();
+            };
+            container.appendChild(tidakIkutBtn);
+
             // Tombol Pendamping
             const pendBtn = document.createElement('button');
             const isPend = (activeViewMode === 'pendamping');
@@ -1468,6 +1965,7 @@
             const globalView = document.getElementById('global-rekap-view');
             const kaosView = document.getElementById('kaos-view');
             const pendampingView = document.getElementById('pendamping-view');
+            const tidakIkutView = document.getElementById('siswa-tidak-ikut-view');
             const statsBox = document.getElementById('bus-stats');
             const mainTitle = document.getElementById('active-bus-title');
             const hintText = document.getElementById('hint-text');
@@ -1476,6 +1974,7 @@
             globalView.classList.add('hidden');
             kaosView.classList.add('hidden');
             pendampingView.classList.add('hidden');
+            if (tidakIkutView) tidakIkutView.classList.add('hidden');
             statsBox.classList.add('hidden');
             hintText.classList.add('hidden');
 
@@ -1488,6 +1987,10 @@
                 mainTitle.innerText = "Data Kaos";
                 renderKaosTabs();
                 renderKaosTable();
+            } else if (activeViewMode === 'tidak-ikut') {
+                if (tidakIkutView) tidakIkutView.classList.remove('hidden');
+                mainTitle.innerText = "Siswa Tidak Ikut";
+                renderSiswaTidakIkutView();
             } else if (activeViewMode === 'pendamping') {
                 pendampingView.classList.remove('hidden');
                 mainTitle.innerText = "Pendamping";
@@ -1502,6 +2005,12 @@
 
         function applyKaosView() {
             activeViewMode = 'kaos';
+            renderBusSelector();
+            applyGlobalView();
+        }
+
+        function applySiswaTidakIkutView() {
+            activeViewMode = 'tidak-ikut';
             renderBusSelector();
             applyGlobalView();
         }
@@ -1732,6 +2241,15 @@
                     delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
                     delBtn.onclick = () => deleteParticipant(p.id);
 
+                    if (p.paidDate && p.seat) {
+                        const waBtn = document.createElement('button');
+                        waBtn.className = 'w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition border border-emerald-200 text-xs';
+                        waBtn.title = 'Kirim Konfirmasi Kursi ke WA Bendahara';
+                        waBtn.innerHTML = '<i class="fa-brands fa-whatsapp text-sm"></i>';
+                        waBtn.onclick = () => openWAConfirmModal(p);
+                        actionsDiv.appendChild(waBtn);
+                    }
+
                     actionsDiv.appendChild(editBtn);
                     actionsDiv.appendChild(delBtn);
                 }
@@ -1805,6 +2323,15 @@
 
             if (!roomNo || !name) {
                 showToast("Nomor Kamar dan Nama Siswa wajib diisi!", "error");
+                return;
+            }
+
+            // Proteksi Siswa Tidak Ikut: Jangan izinkan siswa tidak ikut masuk ke hotel
+            const tidakIkutMatch = (typeof getSiswaTidakIkutList === 'function') 
+                ? getSiswaTidakIkutList().find(t => (t.name || '').trim().toLowerCase() === name.toLowerCase()) 
+                : null;
+            if (tidakIkutMatch) {
+                showToast(`Siswa "${escapeHTML(name)}" berstatus TIDAK IKUT (belum/tidak pesan kaos) dan tidak dapat dimasukkan ke kamar hotel!`, "error");
                 return;
             }
 
@@ -2084,6 +2611,12 @@
                 renderKaosTable();
             };
             container.appendChild(rekapBtn);
+
+            // Update label tombol unduh kelas aktif
+            const lblExcel = document.getElementById('btn-export-class-label-excel');
+            if (lblExcel) lblExcel.innerText = currentKaosClass === 'REKAP' ? 'Semua' : currentKaosClass;
+            const lblCsv = document.getElementById('btn-export-class-label-csv');
+            if (lblCsv) lblCsv.innerText = currentKaosClass === 'REKAP' ? 'Semua' : currentKaosClass;
         }
 
         function quickUpdateKaosSize(id, newSize) {
@@ -2092,10 +2625,12 @@
                 item.size = newSize;
                 saveKaosToLocalStorage();
                 renderKaosTable();
-                if (newSize) {
-                    showToast(`Ukuran ${escapeHTML(item.name)} diatur ke ${newSize}.`, 'success');
+                renderBusSelector();
+                if (!newSize || newSize === '' || newSize === '-') {
+                    syncSiswaTidakIkutEnforcement();
+                    showToast(`Ukuran ${escapeHTML(item.name)} dikosongkan. Siswa otomatis masuk daftar Siswa Tidak Ikut.`, 'warning');
                 } else {
-                    showToast(`Ukuran ${escapeHTML(item.name)} dikosongkan.`, 'warning');
+                    showToast(`Ukuran ${escapeHTML(item.name)} diatur ke ${newSize}. Siswa aktif mengikuti outing.`, 'success');
                 }
             }
         }
@@ -2378,7 +2913,7 @@
             } else {
                 kaosData.push({
                     id: generateId(),
-                    className: currentKaosClass,
+                    className: currentKaosClass === 'REKAP' ? '8A' : currentKaosClass,
                     name: name,
                     gender: gender,
                     size: size
@@ -2386,7 +2921,11 @@
             }
 
             saveKaosToLocalStorage();
+            if (!size || size === '') {
+                syncSiswaTidakIkutEnforcement();
+            }
             renderKaosTable();
+            renderBusSelector();
             closeKaosModal();
             showToast("Data ukuran kaos berhasil disimpan.");
         }
@@ -2399,6 +2938,7 @@
                     kaosData = kaosData.filter(k => k.id !== id);
                     saveKaosToLocalStorage();
                     renderKaosTable();
+                    renderBusSelector();
                     showToast("Data kaos dihapus.", "success");
                 }
             );
@@ -2420,6 +2960,7 @@
                     kaosData = kaosData.filter(k => k.className !== currentKaosClass);
                     saveKaosToLocalStorage();
                     renderKaosTable();
+                    renderBusSelector();
                     showToast(`Semua data kaos Kelas ${currentKaosClass} telah dihapus.`, "success");
                 }
             );
@@ -2433,6 +2974,313 @@
                 showToast("Gagal menyimpan data kaos! Storage penuh.", "error");
             }
             broadcastMultiPCSync("Data Ukuran Kaos");
+        }
+
+        // ============================================================
+        // FITUR SISWA TIDAK IKUT OUTING CLASS
+        // ============================================================
+        let currentTidakIkutClass = 'ALL';
+
+        function isSiswaTidakIkut(item) {
+            if (!item) return false;
+            if (!item.size || item.size.trim() === '' || item.size.trim() === '-' || item.size.trim().toUpperCase() === 'TIDAK IKUT') {
+                return true;
+            }
+            return !validKaosSizes.includes(item.size.trim().toUpperCase());
+        }
+
+        function getSiswaTidakIkutList() {
+            const list = kaosData.filter(item => isSiswaTidakIkut(item));
+            list.sort((a, b) => {
+                const clsA = a.className || '';
+                const clsB = b.className || '';
+                const idxA = kaosClasses.indexOf(clsA);
+                const idxB = kaosClasses.indexOf(clsB);
+                if (idxA !== idxB) {
+                    if (idxA === -1) return 1;
+                    if (idxB === -1) return -1;
+                    return idxA - idxB;
+                }
+                return (a.name || '').localeCompare(b.name || '');
+            });
+            return list;
+        }
+
+        function syncSiswaTidakIkutEnforcement(silent = false) {
+            const tidakIkutList = getSiswaTidakIkutList();
+            if (!tidakIkutList || tidakIkutList.length === 0) return;
+
+            const tidakIkutNames = new Set(tidakIkutList.map(s => (s.name || '').trim().toLowerCase()));
+
+            let changed = false;
+            let removedBusCount = 0;
+            let removedHotelCount = 0;
+
+            // 1. Otomatis hapus nama siswa tidak ikut dari daftar bus / kursi
+            const initialParticipantsLen = participants.length;
+            participants = participants.filter(p => {
+                const norm = (p.name || '').trim().toLowerCase();
+                if (norm && tidakIkutNames.has(norm)) {
+                    removedBusCount++;
+                    return false;
+                }
+                return true;
+            });
+
+            if (participants.length !== initialParticipantsLen) {
+                changed = true;
+                saveToLocalStorage();
+            }
+
+            // 2. Otomatis hapus nama siswa tidak ikut dari kamar hotel
+            const initialHotelLen = hotelRooms.length;
+            hotelRooms = hotelRooms.filter(h => {
+                const norm = (h.name || '').trim().toLowerCase();
+                if (norm && tidakIkutNames.has(norm)) {
+                    removedHotelCount++;
+                    return false;
+                }
+                return true;
+            });
+
+            if (hotelRooms.length !== initialHotelLen) {
+                changed = true;
+                saveHotelToLocalStorage();
+            }
+
+            if (changed) {
+                renderBusLayout();
+                renderTable();
+                renderHotelRooms();
+                renderRekapBus();
+                if (!silent) {
+                    showToast(`Sinkronisasi: ${removedBusCount} siswa tidak ikut otomatis dihapus dari bus & ${removedHotelCount} dari kamar hotel.`, 'warning');
+                }
+            }
+        }
+
+        function renderSiswaTidakIkutView() {
+            renderSiswaTidakIkutMetrics();
+            renderSiswaTidakIkutTabs();
+            renderSiswaTidakIkutTable();
+        }
+
+        function renderSiswaTidakIkutMetrics() {
+            const allTidakIkut = getSiswaTidakIkutList();
+            const totalSiswa = kaosData.length;
+            const ikutCount = totalSiswa - allTidakIkut.length;
+
+            const elTidakIkut = document.getElementById('metric-tidak-ikut-count');
+            if (elTidakIkut) elTidakIkut.innerText = allTidakIkut.length;
+
+            const elIkut = document.getElementById('metric-ikut-count');
+            if (elIkut) elIkut.innerText = ikutCount;
+
+            const elTotal = document.getElementById('metric-total-siswa-count');
+            if (elTotal) elTotal.innerText = totalSiswa;
+        }
+
+        function renderSiswaTidakIkutTabs() {
+            const container = document.getElementById('tidak-ikut-tabs-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const allList = getSiswaTidakIkutList();
+
+            // Tab "Semua (8A - 8J)"
+            const isAllAct = (currentTidakIkutClass === 'ALL');
+            const allBtn = document.createElement('button');
+            allBtn.className = isAllAct
+                ? 'px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all shadow-sm bg-rose-600 text-white border border-rose-500 scale-105'
+                : 'px-3.5 py-1.5 rounded-xl font-semibold text-xs transition-all bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200';
+            allBtn.innerHTML = `Semua (8A-8J) <span class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${isAllAct ? 'bg-rose-800' : 'bg-slate-200'} font-bold">${allList.length}</span>`;
+            allBtn.onclick = () => {
+                currentTidakIkutClass = 'ALL';
+                renderSiswaTidakIkutTabs();
+                renderSiswaTidakIkutTable();
+            };
+            container.appendChild(allBtn);
+
+            // Tab 8A s/d 8J
+            kaosClasses.forEach(cls => {
+                const countCls = allList.filter(item => item.className === cls).length;
+                const isAct = (currentTidakIkutClass === cls);
+                const btn = document.createElement('button');
+                btn.className = isAct
+                    ? 'px-2.5 py-1.5 rounded-xl font-bold text-xs transition-all shadow-sm bg-rose-600 text-white border border-rose-500 scale-105'
+                    : 'px-2.5 py-1.5 rounded-xl font-semibold text-xs transition-all bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200';
+                btn.innerHTML = `${cls} <span class="ml-0.5 text-[10px] opacity-80">(${countCls})</span>`;
+                btn.onclick = () => {
+                    currentTidakIkutClass = cls;
+                    renderSiswaTidakIkutTabs();
+                    renderSiswaTidakIkutTable();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderSiswaTidakIkutTable() {
+            const tbody = document.getElementById('tidak-ikut-table-body');
+            const emptyState = document.getElementById('tidak-ikut-empty-state');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const searchInput = document.getElementById('tidak-ikut-search-input');
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+            let list = getSiswaTidakIkutList();
+            if (currentTidakIkutClass !== 'ALL') {
+                list = list.filter(item => item.className === currentTidakIkutClass);
+            }
+
+            if (query) {
+                list = list.filter(item => (item.name || '').toLowerCase().includes(query));
+            }
+
+            if (list.length === 0) {
+                if (emptyState) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                }
+                return;
+            }
+
+            if (emptyState) {
+                emptyState.classList.remove('flex');
+                emptyState.classList.add('hidden');
+            }
+
+            list.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-rose-50/40 transition-colors border-b border-slate-100';
+
+                const genderBadge = item.gender 
+                    ? (item.gender === 'L' 
+                        ? '<span class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 font-bold text-xs">L</span>' 
+                        : '<span class="text-pink-600 bg-pink-50 px-2 py-0.5 rounded-md border border-pink-100 font-bold text-xs">P</span>')
+                    : '<span class="text-slate-400 text-xs">-</span>';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center text-slate-400 font-medium text-xs">${index + 1}</td>
+                    <td class="py-3 px-4 font-bold text-slate-800">
+                        ${escapeHTML(item.name)}
+                    </td>
+                    <td class="py-3 px-4 text-center">${genderBadge}</td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="inline-block px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 font-extrabold text-xs border border-indigo-200">
+                            ${escapeHTML(item.className || '-')}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                            <i class="fa-solid fa-circle-xmark text-rose-500"></i> Tidak Ikut Outing
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="openIkutkanModal('${item.id}')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-xs" title="Pilih ukuran kaos & ikutkan outing">
+                                <i class="fa-solid fa-shirt"></i> Ikutkan
+                            </button>
+                            <button onclick="deleteTidakIkutSiswa('${item.id}')" class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs flex items-center justify-center border border-rose-200" title="Hapus permanen dari data siswa">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openIkutkanModal(id) {
+            const item = kaosData.find(k => k.id === id);
+            if (!item) return;
+
+            document.getElementById('ikutkan-student-id').value = item.id;
+            document.getElementById('ikutkan-student-name').innerText = item.name;
+            document.getElementById('ikutkan-student-class').innerText = `Kelas ${item.className || '-'}`;
+            document.getElementById('ikutkan-size-select').value = 'M';
+
+            openModal('ikutkan-modal');
+        }
+
+        function confirmIkutkanSiswa() {
+            const id = document.getElementById('ikutkan-student-id').value;
+            const newSize = document.getElementById('ikutkan-size-select').value;
+            const item = kaosData.find(k => k.id === id);
+
+            if (!item) {
+                closeModalById('ikutkan-modal');
+                return;
+            }
+
+            item.size = newSize;
+            saveKaosToLocalStorage();
+            closeModalById('ikutkan-modal');
+
+            renderBusSelector();
+            renderSiswaTidakIkutView();
+            showToast(`Siswa "${escapeHTML(item.name)}" berhasil diikutkan dengan kaos ukuran ${newSize}! Kursi bus kini dapat dipilih.`, 'success');
+        }
+
+        function deleteTidakIkutSiswa(id) {
+            const item = kaosData.find(k => k.id === id);
+            if (!item) return;
+
+            showConfirm(
+                "Hapus Data Siswa",
+                `Yakin ingin menghapus data siswa "${item.name}" (Kelas ${item.className}) secara permanen?`,
+                () => {
+                    kaosData = kaosData.filter(k => k.id !== id);
+                    saveKaosToLocalStorage();
+                    renderBusSelector();
+                    renderSiswaTidakIkutView();
+                    showToast(`Data siswa "${item.name}" berhasil dihapus.`, 'success');
+                }
+            );
+        }
+
+        function openTambahTidakIkutModal() {
+            document.getElementById('tidak-ikut-input-name').value = '';
+            document.getElementById('tidak-ikut-input-gender').value = '';
+            if (currentTidakIkutClass && currentTidakIkutClass !== 'ALL') {
+                document.getElementById('tidak-ikut-input-class').value = currentTidakIkutClass;
+            } else {
+                document.getElementById('tidak-ikut-input-class').value = '8A';
+            }
+            openModal('tambah-tidak-ikut-modal');
+        }
+
+        function saveTambahTidakIkut() {
+            const name = document.getElementById('tidak-ikut-input-name').value.trim();
+            const gender = document.getElementById('tidak-ikut-input-gender').value;
+            const className = document.getElementById('tidak-ikut-input-class').value;
+
+            if (!name) {
+                showToast("Nama siswa wajib diisi!", "error");
+                return;
+            }
+
+            const existingIdx = kaosData.findIndex(k => k.name.toLowerCase() === name.toLowerCase() && k.className === className);
+            if (existingIdx !== -1) {
+                kaosData[existingIdx].size = '';
+                if (gender) kaosData[existingIdx].gender = gender;
+            } else {
+                kaosData.push({
+                    id: generateId(),
+                    name: name,
+                    gender: gender || '',
+                    className: className,
+                    size: ''
+                });
+            }
+
+            saveKaosToLocalStorage();
+            syncSiswaTidakIkutEnforcement();
+            closeModalById('tambah-tidak-ikut-modal');
+
+            renderBusSelector();
+            renderSiswaTidakIkutView();
+            showToast(`Siswa "${escapeHTML(name)}" berhasil dicatat sebagai Siswa Tidak Ikut.`, 'success');
         }
 
         // ============================================================
@@ -2521,16 +3369,186 @@
             showToast("File rekap global berhasil diunduh.", "success");
         }
 
-        function exportKaosCSV() {
-            let csv = "Kelas,No,Nama Siswa,L/P,Ukuran Kaos\n";
-            kaosClasses.forEach(cls => {
-                const list = kaosData.filter(item => item.className === cls);
-                list.forEach((item, idx) => {
-                    csv += `${escapeCSV(cls)},${idx + 1},${escapeCSV(item.name)},${item.gender || '-'},${escapeCSV(item.size || 'Belum Diisi')}\n`;
+        function exportKaosExcel(targetClass) {
+            const cls = targetClass || currentKaosClass;
+            if (typeof XLSX === 'undefined') {
+                showToast("Pustaka SheetJS belum siap, beralih ke CSV...", "warning");
+                exportKaosCSV(targetClass);
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+
+            if (cls === 'REKAP') {
+                const aoaAll = [
+                    ["No", "Nama Siswa", "L/P", "Kelas", "Ukuran Kaos"]
+                ];
+                let globalIdx = 1;
+                kaosClasses.forEach(c => {
+                    const list = kaosData.filter(item => item.className === c);
+                    list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    list.forEach(item => {
+                        aoaAll.push([
+                            globalIdx++,
+                            item.name || '',
+                            item.gender || '-',
+                            item.className || c,
+                            item.size || 'Belum Diisi'
+                        ]);
+                    });
                 });
+                const wsAll = XLSX.utils.aoa_to_sheet(aoaAll);
+                wsAll['!cols'] = [{ wch: 6 }, { wch: 32 }, { wch: 8 }, { wch: 10 }, { wch: 18 }];
+                XLSX.utils.book_append_sheet(wb, wsAll, "Semua Kelas");
+
+                // Lembar sheet rincian per masing-masing kelas 8A - 8J
+                kaosClasses.forEach(c => {
+                    const list = kaosData.filter(item => item.className === c);
+                    list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    const sheetAoa = [
+                        ["No", "Nama Siswa", "L/P", "Kelas", "Ukuran Kaos"]
+                    ];
+                    list.forEach((item, idx) => {
+                        sheetAoa.push([
+                            idx + 1,
+                            item.name || '',
+                            item.gender || '-',
+                            item.className || c,
+                            item.size || 'Belum Diisi'
+                        ]);
+                    });
+                    const wsClass = XLSX.utils.aoa_to_sheet(sheetAoa);
+                    wsClass['!cols'] = [{ wch: 6 }, { wch: 32 }, { wch: 8 }, { wch: 10 }, { wch: 18 }];
+                    XLSX.utils.book_append_sheet(wb, wsClass, `Kelas ${c}`);
+                });
+
+                XLSX.writeFile(wb, `Data_Kaos_Semua_Kelas_8A_8J.xlsx`);
+                showToast("File Excel semua kelas berhasil diunduh.", "success");
+            } else {
+                const list = kaosData.filter(item => item.className === cls);
+                list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                const aoa = [
+                    ["No", "Nama Siswa", "L/P", "Kelas", "Ukuran Kaos"]
+                ];
+                list.forEach((item, idx) => {
+                    aoa.push([
+                        idx + 1,
+                        item.name || '',
+                        item.gender || '-',
+                        item.className || cls,
+                        item.size || 'Belum Diisi'
+                    ]);
+                });
+                const ws = XLSX.utils.aoa_to_sheet(aoa);
+                ws['!cols'] = [{ wch: 6 }, { wch: 32 }, { wch: 8 }, { wch: 10 }, { wch: 18 }];
+                XLSX.utils.book_append_sheet(wb, ws, `Kelas ${cls}`);
+                XLSX.writeFile(wb, `Data_Kaos_Kelas_${cls}.xlsx`);
+                showToast(`File Excel Kelas ${cls} berhasil diunduh.`, "success");
+            }
+        }
+
+        function exportKaosCSV(targetClass) {
+            const cls = targetClass || currentKaosClass;
+            if (cls === 'REKAP') {
+                let csv = "No,Nama Siswa,L/P,Kelas,Ukuran Kaos\n";
+                let globalIdx = 1;
+                kaosClasses.forEach(c => {
+                    const list = kaosData.filter(item => item.className === c);
+                    list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    list.forEach(item => {
+                        csv += `${globalIdx++},${escapeCSV(item.name)},${escapeCSV(item.gender || '-')},${escapeCSV(item.className || c)},${escapeCSV(item.size || 'Belum Diisi')}\n`;
+                    });
+                });
+                downloadCSV(`Data_Kaos_Semua_Kelas_8A_8J.csv`, csv);
+                showToast("File CSV semua kelas berhasil diunduh.", "success");
+            } else {
+                const list = kaosData.filter(item => item.className === cls);
+                list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                let csv = "No,Nama Siswa,L/P,Kelas,Ukuran Kaos\n";
+                list.forEach((item, idx) => {
+                    csv += `${idx + 1},${escapeCSV(item.name)},${escapeCSV(item.gender || '-')},${escapeCSV(item.className || cls)},${escapeCSV(item.size || 'Belum Diisi')}\n`;
+                });
+                downloadCSV(`Data_Kaos_Kelas_${cls}.csv`, csv);
+                showToast(`File CSV Kelas ${cls} berhasil diunduh.`, "success");
+            }
+        }
+
+        function exportSiswaTidakIkutExcel() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Pustaka SheetJS belum siap, beralih ke CSV...", "warning");
+                exportSiswaTidakIkutCSV();
+                return;
+            }
+
+            const list = getSiswaTidakIkutList();
+            const filtered = (currentTidakIkutClass === 'ALL')
+                ? list
+                : list.filter(item => item.className === currentTidakIkutClass);
+
+            const wb = XLSX.utils.book_new();
+            const aoa = [
+                ["No", "Nama Siswa", "L/P", "Kelas", "Keterangan"]
+            ];
+            filtered.forEach((item, idx) => {
+                aoa.push([
+                    idx + 1,
+                    item.name || '',
+                    item.gender || '-',
+                    item.className || '-',
+                    'Tidak Pesan Kaos / Belum Ada Ukuran (Tidak Ikut Outing)'
+                ]);
             });
-            downloadCSV(`Rekap_Ukuran_Kaos_8A_8J.csv`, csv);
-            showToast("File rekap kaos berhasil diunduh.", "success");
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+            ws['!cols'] = [{ wch: 6 }, { wch: 32 }, { wch: 8 }, { wch: 10 }, { wch: 40 }];
+            const sheetName = (currentTidakIkutClass === 'ALL') ? "Semua Tidak Ikut" : `Kelas ${currentTidakIkutClass}`;
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+            // Jika ekspor semua, sediakan sheet per kelas 8A - 8J
+            if (currentTidakIkutClass === 'ALL') {
+                kaosClasses.forEach(c => {
+                    const cList = list.filter(item => item.className === c);
+                    if (cList.length > 0) {
+                        const classAoa = [
+                            ["No", "Nama Siswa", "L/P", "Kelas", "Keterangan"]
+                        ];
+                        cList.forEach((item, idx) => {
+                            classAoa.push([
+                                idx + 1,
+                                item.name || '',
+                                item.gender || '-',
+                                item.className || c,
+                                'Tidak Pesan Kaos / Belum Ada Ukuran (Tidak Ikut Outing)'
+                            ]);
+                        });
+                        const wsC = XLSX.utils.aoa_to_sheet(classAoa);
+                        wsC['!cols'] = [{ wch: 6 }, { wch: 32 }, { wch: 8 }, { wch: 10 }, { wch: 40 }];
+                        XLSX.utils.book_append_sheet(wb, wsC, `Kelas ${c}`);
+                    }
+                });
+            }
+
+            const fname = (currentTidakIkutClass === 'ALL') 
+                ? 'Daftar_Siswa_Tidak_Ikut_8A_8J.xlsx' 
+                : `Daftar_Siswa_Tidak_Ikut_Kelas_${currentTidakIkutClass}.xlsx`;
+            XLSX.writeFile(wb, fname);
+            showToast("File Excel Siswa Tidak Ikut berhasil diunduh.", "success");
+        }
+
+        function exportSiswaTidakIkutCSV() {
+            const list = getSiswaTidakIkutList();
+            const filtered = (currentTidakIkutClass === 'ALL')
+                ? list
+                : list.filter(item => item.className === currentTidakIkutClass);
+
+            let csv = "No,Nama Siswa,L/P,Kelas,Keterangan\n";
+            filtered.forEach((item, idx) => {
+                csv += `${idx + 1},${escapeCSV(item.name)},${escapeCSV(item.gender || '-')},${escapeCSV(item.className || '-')},${escapeCSV('Tidak Pesan Kaos / Belum Ada Ukuran (Tidak Ikut Outing)')}\n`;
+            });
+            const fname = (currentTidakIkutClass === 'ALL') 
+                ? 'Daftar_Siswa_Tidak_Ikut_8A_8J.csv' 
+                : `Daftar_Siswa_Tidak_Ikut_Kelas_${currentTidakIkutClass}.csv`;
+            downloadCSV(fname, csv);
+            showToast("File CSV Siswa Tidak Ikut berhasil diunduh.", "success");
         }
 
         // ============================================================
@@ -2582,6 +3600,14 @@
 
                         let gender = row[2] ? String(row[2]).trim().toUpperCase() : '';
                         let kelas = row[3] ? String(row[3]).trim() : '';
+
+                        // Jangan impor jika siswa tercatat tidak ikut (belum/tidak ada ukuran kaos)
+                        const tidakIkutList = (typeof getSiswaTidakIkutList === 'function') ? getSiswaTidakIkutList() : [];
+                        const isTidakIkut = tidakIkutList.some(t => (t.name || '').trim().toLowerCase() === name.toLowerCase());
+                        if (isTidakIkut) {
+                            skippedCount++;
+                            continue;
+                        }
 
                         participants.push({
                             id: generateId(),
@@ -2788,6 +3814,8 @@
 
                     if (addedCount > 0 || updatedCount > 0) {
                         saveKaosToLocalStorage();
+                        syncSiswaTidakIkutEnforcement(true);
+                        renderBusSelector();
 
                         // Otomatis buka tab kelas yang baru saja di-upload agar langsung terlihat
                         if (detectedClass && currentKaosClass !== detectedClass && currentKaosClass !== 'REKAP') {
@@ -2861,6 +3889,7 @@
                 }
             }
 
+            updateWASettingsUI();
             openModal('input-modal');
             setTimeout(() => formName.focus(), 100);
         }
@@ -2880,6 +3909,15 @@
 
             if (name === "") {
                 showToast("Nama siswa wajib diisi!", "error");
+                return;
+            }
+
+            // Proteksi Siswa Tidak Ikut: jika siswa tercatat tidak ikut / belum ada ukuran kaos, tidak boleh dimasukkan ke bus
+            const tidakIkutMatch = (typeof getSiswaTidakIkutList === 'function')
+                ? getSiswaTidakIkutList().find(t => (t.name || '').trim().toLowerCase() === name.toLowerCase())
+                : null;
+            if (tidakIkutMatch) {
+                showToast(`Siswa "${escapeHTML(name)}" tercatat TIDAK IKUT (belum/tidak pesan kaos). Silakan tentukan ukuran kaos terlebih dahulu di menu Siswa Tidak Ikut / Data Kaos untuk mengikutkan!`, "error");
                 return;
             }
 
@@ -2916,6 +3954,7 @@
         }
 
         function executeSaveSeatData(id, name, gender, kelas, paid, seat) {
+            let savedParticipant = null;
             if (id) {
                 const pIndex = participants.findIndex(p => p.id === id);
                 if (pIndex !== -1) {
@@ -2924,11 +3963,14 @@
                     participants[pIndex].class = kelas;
                     participants[pIndex].paidDate = paid;
                     participants[pIndex].seat = seat;
+                    savedParticipant = participants[pIndex];
                 }
             } else {
-                participants.push({
+                const newP = {
                     id: generateId(), name: name, gender: gender, class: kelas, paidDate: paid, seat: seat, busId: currentBus
-                });
+                };
+                participants.push(newP);
+                savedParticipant = newP;
             }
             
             saveToLocalStorage();
@@ -2937,6 +3979,16 @@
             renderRekapBus();
             closeModal();
             showToast("Data siswa berhasil disimpan.");
+
+            // TRIGGER NOTIFIKASI WA BENDAHARA (Jika Lunas & Memilih Kursi)
+            const sendWaCheckbox = document.getElementById('send-wa-on-save');
+            const shouldTriggerWA = !sendWaCheckbox || sendWaCheckbox.checked;
+
+            if (savedParticipant && savedParticipant.paidDate && savedParticipant.seat && shouldTriggerWA) {
+                setTimeout(() => {
+                    handlePostSaveSeatWA(savedParticipant);
+                }, 250);
+            }
         }
 
         function clearSeatOnly() {
@@ -3278,6 +4330,381 @@
         }
 
         // ============================================================
+        // SISTEM NOTIFIKASI & REKAP WHATSAPP BENDAHARA
+        // ============================================================
+        let currentWAParticipant = null;
+        let currentWARekapBus = 1;
+
+        function getWAGroupName() {
+            const name = localStorage.getItem('wa_group_name');
+            return name && name.trim() ? name.trim() : 'plesiran mts';
+        }
+
+        function getWAGroupLink() {
+            const link = localStorage.getItem('wa_group_link');
+            return link && link.trim() ? link.trim() : 'https://chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2';
+        }
+
+        function getWABendaharaName() {
+            const name = localStorage.getItem('wa_bendahara_name');
+            if (!name || name.trim() === '' || name === 'Bendahara Panitia' || name === 'Grup WhatsApp Panitia') {
+                return 'Panitia Ziarah Wisata';
+            }
+            return name.trim();
+        }
+
+        function getWABendaharaPhone() {
+            return localStorage.getItem('wa_bendahara_phone') || '';
+        }
+
+        function isWAAutoOpen() {
+            return localStorage.getItem('wa_auto_open') === 'true';
+        }
+
+        function formatWAPhone(phone) {
+            if (!phone) return '';
+            let cleaned = phone.replace(/[^0-9]/g, '');
+            if (cleaned.startsWith('0')) {
+                cleaned = '62' + cleaned.substring(1);
+            } else if (!cleaned.startsWith('62') && cleaned.length > 5) {
+                cleaned = '62' + cleaned;
+            }
+            return cleaned;
+        }
+
+        function updateWASettingsUI() {
+            const rawPhone = getWABendaharaPhone();
+            const groupName = getWAGroupName();
+            const groupLink = getWAGroupLink();
+            const name = getWABendaharaName();
+            const btnLabel = document.getElementById('wa-btn-label');
+            const targetLabel = document.getElementById('wa-modal-target-number');
+            const notifGroupTitle = document.getElementById('wa-notif-group-title');
+            const notifGroupLinkHref = document.getElementById('wa-notif-group-link-href');
+            const testBtn = document.getElementById('setting-wa-group-link-btn');
+
+            if (btnLabel) {
+                if (rawPhone) {
+                    btnLabel.innerHTML = `Notif WA: <span class="font-bold text-white">${escapeHTML(rawPhone)}</span>`;
+                } else {
+                    btnLabel.innerHTML = `Grup WA: <span class="font-bold text-white">${escapeHTML(groupName)}</span>`;
+                }
+            }
+
+            if (targetLabel) {
+                if (rawPhone) {
+                    targetLabel.innerHTML = `Tujuan: <b class="text-emerald-950 font-bold">${escapeHTML(rawPhone)} (${escapeHTML(name)})</b>`;
+                } else {
+                    targetLabel.innerHTML = `Tujuan: <b class="text-emerald-950 font-bold">Grup WA ${escapeHTML(groupName)}</b>`;
+                }
+            }
+
+            if (notifGroupTitle) {
+                notifGroupTitle.innerText = `Grup WA: ${groupName}`;
+            }
+
+            if (notifGroupLinkHref) {
+                notifGroupLinkHref.href = groupLink;
+                notifGroupLinkHref.innerText = groupLink.replace(/^https?:\/\//i, '');
+            }
+
+            if (testBtn) {
+                testBtn.href = groupLink;
+            }
+        }
+
+        function openWASettingsModal() {
+            const phoneInput = document.getElementById('setting-wa-phone');
+            const nameInput = document.getElementById('setting-wa-name');
+            const groupNameInput = document.getElementById('setting-wa-group-name');
+            const groupLinkInput = document.getElementById('setting-wa-group-link');
+            const autoOpenInput = document.getElementById('setting-wa-auto-open');
+            const testBtn = document.getElementById('setting-wa-group-link-btn');
+
+            if (phoneInput) phoneInput.value = getWABendaharaPhone();
+            if (nameInput) nameInput.value = getWABendaharaName();
+            if (groupNameInput) groupNameInput.value = getWAGroupName();
+            if (groupLinkInput) groupLinkInput.value = getWAGroupLink();
+            if (testBtn) testBtn.href = getWAGroupLink();
+            if (autoOpenInput) autoOpenInput.checked = isWAAutoOpen();
+
+            openModal('wa-settings-modal');
+        }
+
+        function saveWASettings() {
+            const phoneVal = (document.getElementById('setting-wa-phone').value || '').trim();
+            const nameVal = (document.getElementById('setting-wa-name').value || '').trim() || 'Panitia Ziarah Wisata';
+            const groupNameVal = (document.getElementById('setting-wa-group-name').value || '').trim() || 'plesiran mts';
+            const groupLinkVal = (document.getElementById('setting-wa-group-link').value || '').trim() || 'https://chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2';
+            const autoOpenVal = document.getElementById('setting-wa-auto-open').checked;
+
+            localStorage.setItem('wa_bendahara_phone', phoneVal);
+            localStorage.setItem('wa_bendahara_name', nameVal);
+            localStorage.setItem('wa_group_name', groupNameVal);
+            localStorage.setItem('wa_group_link', groupLinkVal);
+            localStorage.setItem('wa_auto_open', autoOpenVal ? 'true' : 'false');
+
+            updateWASettingsUI();
+            closeModalById('wa-settings-modal');
+
+            // Broadcast setting ke Supabase agar sinkron ke PC 2, 3, 4
+            if (isSupabaseConnected) {
+                saveToSupabase();
+            }
+
+            showToast("Pengaturan Grup WA berhasil disimpan!", "success");
+        }
+
+        function saveQuickWAPhone() {
+            const inputVal = (document.getElementById('wa-notif-phone-input').value || '').trim();
+            localStorage.setItem('wa_bendahara_phone', inputVal);
+            updateWASettingsUI();
+            if (isSupabaseConnected) saveToSupabase();
+            if (inputVal) {
+                showToast("Nomor WhatsApp berhasil disimpan!", "success");
+            } else {
+                showToast("Mode Grup WA (plesiran mts) aktif.", "info");
+            }
+        }
+
+        function generateStudentWAMessage(p) {
+            if (!p) return '';
+            const busNo = p.busId || currentBus;
+            const now = new Date();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const day = String(now.getDate()).padStart(2, '0');
+            const monthStr = months[now.getMonth()];
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const timeStr = `${day} ${monthStr} ${year} ${hours}.${mins}`;
+
+            const genderStr = p.gender === 'L' ? 'Laki-laki' : (p.gender === 'P' ? 'Perempuan' : '-');
+            const operatorStr = (typeof currentOperator !== 'undefined' && currentOperator && currentOperator.name) ? currentOperator.name : 'PC 1 (Admin Utama)';
+            const recipientStr = getWABendaharaName() || 'Panitia Ziarah Wisata';
+            const seatPad = String(p.seat).padStart(2, '0');
+
+            return `📢 *KONFIRMASI BOOKING KURSI BUS ZIARAH*
+━━━━━━━━━━━━━━━━━━━━
+Kepada Yth. *${recipientStr}*,
+Berikut data konfirmasi siswa yang telah lunas dan memilih kursi armada:
+
+👤 *Nama Siswa:* ${p.name}
+🚻 *Jenis Kelamin:* ${genderStr}
+🏫 *Kelas / Asal:* ${p.class || '-'}
+🚌 *Armada Bus:* BIS ${busNo}
+💺 *Nomor Kursi:* Kursi #${seatPad}
+💰 *Status:* ✅ *LUNAS*
+📅 *Tanggal Lunas:* ${p.paidDate || '-'}
+⏰ *Waktu Konfirmasi:* ${timeStr}
+🖥️ *Diinput oleh:* ${operatorStr}
+━━━━━━━━━━━━━━━━━━━━
+_Mohon dicatat & direkap ke pembukuan kas/manifest. Terima kasih._`;
+        }
+
+        function handlePostSaveSeatWA(p) {
+            currentWAParticipant = p;
+            const cleanPhone = formatWAPhone(getWABendaharaPhone());
+            const textMsg = generateStudentWAMessage(p);
+
+            // Jika user mengaktifkan Auto-Redirect di settings
+            if (isWAAutoOpen()) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textMsg).catch(() => {});
+                }
+                const waUrl = cleanPhone ? 
+                    `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(textMsg)}` :
+                    `https://api.whatsapp.com/send?text=${encodeURIComponent(textMsg)}`;
+                window.open(waUrl, '_blank');
+                showToast(`Membuka WhatsApp untuk konfirmasi siswa ${p.name}...`, "info");
+                return;
+            }
+
+            // Tampilkan modal konfirmasi WA
+            openWAConfirmModal(p);
+        }
+
+        function openWAConfirmModal(p) {
+            currentWAParticipant = p;
+            if (!p) return;
+
+            document.getElementById('wa-notif-student-name').innerText = p.name;
+            document.getElementById('wa-notif-student-class').innerText = `Kelas ${p.class || '-'}`;
+            document.getElementById('wa-notif-student-gender').innerText = p.gender === 'L' ? 'Laki-laki' : (p.gender === 'P' ? 'Perempuan' : '-');
+            document.getElementById('wa-notif-bus-title').innerText = `BIS ${p.busId || currentBus}`;
+            document.getElementById('wa-notif-seat-badge').innerText = `Kursi #${String(p.seat).padStart(2, '0')}`;
+            
+            const groupTitle = document.getElementById('wa-notif-group-title');
+            if (groupTitle) groupTitle.innerText = `Grup WA: ${getWAGroupName()}`;
+            const groupHref = document.getElementById('wa-notif-group-link-href');
+            if (groupHref) {
+                groupHref.href = getWAGroupLink();
+                groupHref.innerText = getWAGroupLink().replace(/^https?:\/\//i, '');
+            }
+
+            const phoneInput = document.getElementById('wa-notif-phone-input');
+            if (phoneInput) phoneInput.value = getWABendaharaPhone();
+
+            const previewArea = document.getElementById('wa-notif-message-preview');
+            if (previewArea) previewArea.value = generateStudentWAMessage(p);
+
+            openModal('wa-notify-modal');
+        }
+
+        function openWAConfirmModalById(id) {
+            const p = participants.find(item => item.id === id);
+            if (!p) {
+                showToast("Data siswa tidak ditemukan!", "error");
+                return;
+            }
+            openWAConfirmModal(p);
+        }
+
+        function openDirectWAGroup() {
+            const previewArea = document.getElementById('wa-notif-message-preview');
+            const textMsg = (previewArea && previewArea.value) ? previewArea.value : (currentWAParticipant ? generateStudentWAMessage(currentWAParticipant) : '');
+            if (textMsg && navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textMsg).then(() => {
+                    showToast("Pesan otomatis disalin ke clipboard! Membuka grup WA plesiran mts...", "success");
+                }).catch(() => {});
+            }
+            window.open(getWAGroupLink(), '_blank');
+        }
+
+        function sendWAClick() {
+            if (!currentWAParticipant) {
+                closeModalById('wa-notify-modal');
+                return;
+            }
+            const phoneInputVal = (document.getElementById('wa-notif-phone-input').value || '').trim();
+            const cleanPhone = formatWAPhone(phoneInputVal || getWABendaharaPhone());
+            const textMsg = document.getElementById('wa-notif-message-preview').value || generateStudentWAMessage(currentWAParticipant);
+
+            // Selalu salin pesan ke clipboard agar pengguna bisa langsung Ctrl+V di grup bila dibutuhkan
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textMsg).catch(() => {});
+            }
+
+            const waUrl = cleanPhone ?
+                `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(textMsg)}` :
+                `https://api.whatsapp.com/send?text=${encodeURIComponent(textMsg)}`;
+
+            window.open(waUrl, '_blank');
+            closeModalById('wa-notify-modal');
+            showToast("Membuka WhatsApp... Pilih grup plesiran mts untuk mengirim pesan.", "success");
+        }
+
+        function copyWAMessageText() {
+            const previewArea = document.getElementById('wa-notif-message-preview');
+            if (!previewArea) return;
+            navigator.clipboard.writeText(previewArea.value).then(() => {
+                showToast("Pesan WhatsApp berhasil disalin ke clipboard!", "success");
+            }).catch(() => {
+                previewArea.select();
+                document.execCommand('copy');
+                showToast("Pesan WhatsApp berhasil disalin!", "success");
+            });
+        }
+
+        // ============================================================
+        // REKAP MANIFEST BUS KE WA BENDAHARA / GRUP
+        // ============================================================
+        function generateBusRekapWAMessage(busId = currentBus) {
+            const busParticipants = participants.filter(p => p.busId === busId);
+            const seatedParticipants = busParticipants.filter(p => p.seat !== null && p.seat !== "" && p.paidDate);
+            seatedParticipants.sort((a, b) => parseInt(a.seat, 10) - parseInt(b.seat, 10));
+
+            const totalFilled = seatedParticipants.length;
+            const totalEmpty = totalSeats - totalFilled;
+            const unpaidCount = busParticipants.filter(p => !p.paidDate).length;
+
+            const now = new Date();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const day = String(now.getDate()).padStart(2, '0');
+            const monthStr = months[now.getMonth()];
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const timeStr = `${day} ${monthStr} ${year} ${hours}.${mins}`;
+
+            const operatorStr = (typeof currentOperator !== 'undefined' && currentOperator && currentOperator.name) ? currentOperator.name : 'PC 1 (Admin Utama)';
+            const recipientStr = getWABendaharaName() || 'Panitia Ziarah Wisata';
+
+            let listStr = '';
+            if (seatedParticipants.length === 0) {
+                listStr = '_Belum ada siswa yang memilih kursi & lunas._\n';
+            } else {
+                seatedParticipants.forEach((p, idx) => {
+                    const seatPad = String(p.seat).padStart(2, '0');
+                    listStr += `${idx + 1}. [Kursi #${seatPad}] ${p.name} (${p.class || '-'}) - Lunas: ${p.paidDate}\n`;
+                });
+            }
+
+            return `📊 *REKAP DATA MANIFEST BIS ${busId} - ZIARAH WISATA*
+━━━━━━━━━━━━━━━━━━━━
+Kepada Yth. *${recipientStr}*,
+Berikut rekapitulasi data manifest dan pembayaran siswa untuk *BIS ${busId}*:
+
+🚌 *Armada:* BIS ${busId}
+💺 *Total Kapasitas Kursi:* ${totalSeats} Seat
+✅ *Kursi Terisi (Lunas):* ${totalFilled} Siswa
+⏳ *Belum Lunas:* ${unpaidCount} Siswa
+🪑 *Kursi Kosong:* ${totalEmpty} Kursi
+
+📋 *DAFTAR SISWA LUNAS & NOMOR KURSI:*
+${listStr}━━━━━━━━━━━━━━━━━━━━
+_Waktu Rekap: ${timeStr}_
+_Operator Pelapor: ${operatorStr}_
+_Grup Tujuan: ${getWAGroupName()}_
+_Mohon dicatat & direkap ke pembukuan kas/manifest. Terima kasih._`;
+        }
+
+        function sendBusRekapToWA(busId = currentBus) {
+            currentWARekapBus = busId;
+            const subTitle = document.getElementById('wa-rekap-modal-sub');
+            if (subTitle) subTitle.innerText = `Rekapitulasi Manifest BIS ${busId} ke Grup WA ${getWAGroupName()}`;
+
+            const phoneInput = document.getElementById('wa-rekap-phone-input');
+            if (phoneInput) phoneInput.value = getWABendaharaPhone();
+
+            const previewArea = document.getElementById('wa-rekap-message-preview');
+            if (previewArea) previewArea.value = generateBusRekapWAMessage(busId);
+
+            openModal('wa-rekap-modal');
+        }
+
+        function sendWARekapClick() {
+            const phoneInputVal = (document.getElementById('wa-rekap-phone-input').value || '').trim();
+            const cleanPhone = formatWAPhone(phoneInputVal || getWABendaharaPhone());
+            const textMsg = document.getElementById('wa-rekap-message-preview').value || generateBusRekapWAMessage(currentWARekapBus);
+
+            // Salin rekap ke clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textMsg).catch(() => {});
+            }
+
+            const waUrl = cleanPhone ?
+                `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(textMsg)}` :
+                `https://api.whatsapp.com/send?text=${encodeURIComponent(textMsg)}`;
+
+            window.open(waUrl, '_blank');
+            closeModalById('wa-rekap-modal');
+            showToast(`Membuka WhatsApp untuk rekapitulasi ke ${getWAGroupName()}...`, "success");
+        }
+
+        function copyWARekapText() {
+            const previewArea = document.getElementById('wa-rekap-message-preview');
+            if (!previewArea) return;
+            navigator.clipboard.writeText(previewArea.value).then(() => {
+                showToast("Rekap WhatsApp berhasil disalin ke clipboard!", "success");
+            }).catch(() => {
+                previewArea.select();
+                document.execCommand('copy');
+                showToast("Rekap WhatsApp berhasil disalin!", "success");
+            });
+        }
+
+        // ============================================================
         // SUPABASE REALTIME CLOUD INTEGRATION
         // ============================================================
         const SUPABASE_PROJECT_URL = "https://cdkczgxjjbtwotzpecji.supabase.co";
@@ -3368,6 +4795,22 @@
                         merged.pendampingData = pendampingData;
                     }
 
+                    if (serverData.settings) {
+                        if (serverData.settings.waBendaharaPhone && !localStorage.getItem('wa_bendahara_phone')) {
+                            localStorage.setItem('wa_bendahara_phone', serverData.settings.waBendaharaPhone);
+                        }
+                        if (serverData.settings.waBendaharaName && (!localStorage.getItem('wa_bendahara_name') || localStorage.getItem('wa_bendahara_name') === 'Bendahara Panitia' || localStorage.getItem('wa_bendahara_name') === 'Grup WhatsApp Panitia')) {
+                            localStorage.setItem('wa_bendahara_name', serverData.settings.waBendaharaName);
+                        }
+                        if (serverData.settings.waGroupName && !localStorage.getItem('wa_group_name')) {
+                            localStorage.setItem('wa_group_name', serverData.settings.waGroupName);
+                        }
+                        if (serverData.settings.waGroupLink && !localStorage.getItem('wa_group_link')) {
+                            localStorage.setItem('wa_group_link', serverData.settings.waGroupLink);
+                        }
+                        updateWASettingsUI();
+                    }
+
                     applyIncomingData(merged, data.updated_by || 'Cloud', true);
                     isSupabaseConnected = true;
                     updateSyncStatusUI();
@@ -3393,7 +4836,14 @@
                         participants: participants,
                         hotelRooms: hotelRooms,
                         kaosData: kaosData,
-                        pendampingData: pendampingData
+                        pendampingData: pendampingData,
+                        settings: {
+                            waBendaharaPhone: localStorage.getItem('wa_bendahara_phone') || '',
+                            waBendaharaName: getWABendaharaName(),
+                            waGroupName: getWAGroupName(),
+                            waGroupLink: getWAGroupLink(),
+                            waAutoOpen: localStorage.getItem('wa_auto_open') === 'true'
+                        }
                     },
                     updated_at: new Date().toISOString(),
                     updated_by: currentOperator.name || 'Operator'
@@ -3416,6 +4866,27 @@
             if (Array.isArray(data.hotelRooms)) hotelRooms = data.hotelRooms;
             if (Array.isArray(data.kaosData)) kaosData = data.kaosData;
             if (Array.isArray(data.pendampingData)) pendampingData = data.pendampingData;
+
+            // Pastikan aturan Siswa Tidak Ikut tetap ditegakkan saat menerima update multi-PC
+            if (typeof syncSiswaTidakIkutEnforcement === 'function') {
+                syncSiswaTidakIkutEnforcement(true);
+            }
+
+            if (data.settings) {
+                if (data.settings.waBendaharaPhone !== undefined && !localStorage.getItem('wa_bendahara_phone')) {
+                    localStorage.setItem('wa_bendahara_phone', data.settings.waBendaharaPhone);
+                }
+                if (data.settings.waBendaharaName && (!localStorage.getItem('wa_bendahara_name') || localStorage.getItem('wa_bendahara_name') === 'Bendahara Panitia' || localStorage.getItem('wa_bendahara_name') === 'Grup WhatsApp Panitia')) {
+                    localStorage.setItem('wa_bendahara_name', data.settings.waBendaharaName);
+                }
+                if (data.settings.waGroupName && !localStorage.getItem('wa_group_name')) {
+                    localStorage.setItem('wa_group_name', data.settings.waGroupName);
+                }
+                if (data.settings.waGroupLink && !localStorage.getItem('wa_group_link')) {
+                    localStorage.setItem('wa_group_link', data.settings.waGroupLink);
+                }
+                updateWASettingsUI();
+            }
 
             try {
                 localStorage.setItem('busZiarahDataV6', JSON.stringify(participants));
@@ -3565,6 +5036,8 @@
             } else if (activeViewMode === 'kaos') {
                 renderKaosTabs();
                 renderKaosTable();
+            } else if (activeViewMode === 'tidak-ikut') {
+                renderSiswaTidakIkutView();
             } else if (activeViewMode === 'pendamping') {
                 renderPendampingTable();
             } else if (activeViewMode === 'global') {
@@ -3623,6 +5096,7 @@
         // ============================================================
         window.onload = async () => {
             initOperatorSession();
+            updateWASettingsUI();
             
             // Inisialisasi Supabase Cloud
             initSupabase();
@@ -3634,6 +5108,10 @@
                 const savedUrl = localStorage.getItem('ziarah_server_url');
                 if (savedUrl) serverSyncUrl = savedUrl;
                 else serverSyncUrl = 'http://192.168.100.74:8080';
+            }
+
+            if (typeof syncSiswaTidakIkutEnforcement === 'function') {
+                syncSiswaTidakIkutEnforcement(true);
             }
 
             renderBusSelector();
