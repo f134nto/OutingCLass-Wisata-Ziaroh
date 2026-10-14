@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Manajemen Ziarah Wisata & Armada Bus</title>
+    <title>Sistem Manajemen Ziarah Wisata & BIS</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -708,10 +708,26 @@
                         <p class="text-slate-500 text-sm">Kelola daftar pembimbing serta penugasan penanggung jawab per armada.</p>
                     </div>
                     <div class="flex flex-wrap gap-2 no-print">
-                        <button onclick="exportPendampingCSV()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition shadow-sm font-semibold text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-file-arrow-down"></i> Unduh CSV
+                        <button onclick="sendPendampingRekapToWA()" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl transition shadow-sm font-semibold text-xs sm:text-sm flex items-center gap-1.5" title="Kirim rekapitulasi data pendamping ke Grup WhatsApp plesiran mts">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> Rekap ke Grup WA
                         </button>
-                        <button onclick="openPendampingModal()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition shadow-md shadow-indigo-500/20 font-semibold text-sm flex items-center gap-2">
+                        <button onclick="exportPendampingExcel()" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition shadow-sm font-semibold text-xs sm:text-sm flex items-center gap-1.5" title="Unduh data pendamping ke file Excel (.xlsx)">
+                            <i class="fa-solid fa-file-excel"></i> Unduh Excel
+                        </button>
+                        <button onclick="exportPendampingCSV()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition font-semibold text-xs sm:text-sm flex items-center gap-1.5" title="Unduh data pendamping ke CSV (.csv)">
+                            <i class="fa-solid fa-file-arrow-down text-emerald-600"></i> Unduh CSV
+                        </button>
+                        <button onclick="deleteAllPendamping()" class="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition border border-rose-200 font-semibold text-xs sm:text-sm flex items-center gap-1.5" title="Hapus semua data pendamping">
+                            <i class="fa-solid fa-trash-can"></i> Hapus Semua
+                        </button>
+                        
+                        <!-- Input file & tombol Unggah Excel untuk Data Pendamping -->
+                        <input type="file" id="excel-upload-pendamping" accept=".xlsx, .xls, .csv, .htm, .html" class="hidden" onchange="handlePendampingExcelUpload(event)">
+                        <button onclick="document.getElementById('excel-upload-pendamping').click()" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition shadow-sm font-semibold text-xs sm:text-sm flex items-center gap-1.5" title="Unggah data pendamping dari file Excel (.xlsx / .xls / .csv)">
+                            <i class="fa-solid fa-file-excel text-emerald-400"></i> Upload Excel Pendamping
+                        </button>
+                        
+                        <button onclick="openPendampingModal()" class="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition shadow-md shadow-indigo-500/20 font-semibold text-xs sm:text-sm flex items-center gap-1.5">
                             <i class="fa-solid fa-user-plus"></i> Tambah Pendamping
                         </button>
                     </div>
@@ -726,7 +742,7 @@
                                 <th class="py-3.5 px-4 font-bold text-center w-24">L/P</th>
                                 <th class="py-3.5 px-4 font-bold w-44">No. HP / WhatsApp</th>
                                 <th class="py-3.5 px-4 font-bold w-40">Penugasan</th>
-                                <th class="py-3.5 px-4 font-bold text-center w-32">Aksi</th>
+                                <th class="py-3.5 px-4 font-bold text-center w-48">BIS</th>
                             </tr>
                         </thead>
                         <tbody id="pendamping-table-body" class="divide-y divide-slate-100 text-sm bg-white">
@@ -1088,8 +1104,13 @@
                     <input type="text" id="pendamping-phone" placeholder="Contoh: 08123456789" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition text-sm">
                 </div>
 
-                <div class="mb-6">
-                    <label for="pendamping-assignment" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Penugasan Bus / Posisi</label>
+                <div class="mb-4">
+                    <label for="pendamping-role" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Penugasan / Tugas</label>
+                    <input type="text" id="pendamping-role" placeholder="Contoh: Guru Pendamping / Wali Kelas / Koordinator" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition text-sm">
+                </div>
+
+                <div class="mb-4">
+                    <label for="pendamping-assignment" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Penempatan Armada BIS</label>
                     <select id="pendamping-assignment" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition text-sm font-semibold">
                         <option value="Umum/Panitia">Umum / Panitia Inti</option>
                         <option value="BIS 1">BIS 1</option>
@@ -1100,6 +1121,29 @@
                         <option value="BIS 6">BIS 6</option>
                         <option value="BIS 7">BIS 7</option>
                     </select>
+                </div>
+
+                <!-- WA Notification Trigger untuk Pendamping -->
+                <div class="mb-6 p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-emerald-600 text-base"></i>
+                            <span class="text-xs font-bold text-emerald-950">Notifikasi ke Grup WA plesiran mts</span>
+                        </div>
+                        <button type="button" onclick="openWASettingsModal()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold underline">
+                            Pengaturan
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-emerald-700 leading-snug">
+                        Saat disimpan atau diedit, data pendamping ini otomatis disiapkan untuk dikirim ke Grup WhatsApp <b>plesiran mts</b>.
+                    </p>
+                    <div class="mt-2.5 pt-2 border-t border-emerald-200/60 flex items-center justify-between text-xs text-emerald-800">
+                        <span id="wa-pendamping-modal-target" class="text-[11px] font-medium text-emerald-700">Tujuan: <b>Grup WA plesiran mts</b></span>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-emerald-900">
+                            <input type="checkbox" id="send-pendamping-wa-on-save" checked class="w-3.5 h-3.5 text-emerald-600 rounded focus:ring-emerald-500">
+                            Kirim ke Grup WA saat simpan
+                        </label>
+                    </div>
                 </div>
                 
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
@@ -1361,8 +1405,8 @@
                         <i class="fa-brands fa-whatsapp"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-slate-900">Konfirmasi Kursi ke Grup WA</h3>
-                        <p class="text-xs text-slate-500">Kirim notifikasi bukti booking & pelunasan ke Grup <b>plesiran mts</b></p>
+                        <h3 class="text-lg font-black text-slate-900" id="wa-notif-modal-heading">Konfirmasi Kursi ke Grup WA</h3>
+                        <p class="text-xs text-slate-500" id="wa-notif-modal-subheading">Kirim notifikasi bukti booking & pelunasan ke Grup <b>plesiran mts</b></p>
                     </div>
                 </div>
                 <button onclick="closeModalById('wa-notify-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition flex items-center justify-center">
@@ -1454,17 +1498,17 @@
         </div>
     </div>
 
-    <!-- MODAL: PENGATURAN WA GRUP / BENDAHARA -->
+    <!-- MODAL: PENGATURAN WA GRUP <!-- MODAL: PENGATURAN WA GRUP / BENDAHARA / GATEWAY -->
     <div id="wa-settings-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-7 transform scale-95 transition-transform duration-300 mx-4 border border-slate-100 max-h-[92vh] overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-7 transform scale-95 transition-transform duration-300 mx-4 border border-slate-100 max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl border border-emerald-200">
                         <i class="fa-brands fa-whatsapp"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-slate-900">Pengaturan Notifikasi Grup WA</h3>
-                        <p class="text-xs text-slate-500">Notifikasi & Konfirmasi Otomatis</p>
+                        <h3 class="text-lg font-black text-slate-900">Pengaturan WhatsApp & Gateway</h3>
+                        <p class="text-xs text-slate-500">Notifikasi Otomatis (Tanpa Buka WA / Standar)</p>
                     </div>
                 </div>
                 <button onclick="closeModalById('wa-settings-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition flex items-center justify-center">
@@ -1472,42 +1516,98 @@
                 </button>
             </div>
 
+            <!-- Rekomendasi Box -->
+            <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 mb-4 text-xs text-blue-900 leading-relaxed">
+                <div class="font-bold flex items-center gap-1.5 mb-1 text-blue-950">
+                    <i class="fa-solid fa-circle-info text-blue-600"></i> Rekomendasi Ahli Web Developer:
+                </div>
+                <b>Langsung ke No WA Bendahara JAUH LEBIH MUDAH</b> dibanding ke Grup. Karena langsung tertuju ke chat pribadi tanpa perlu memilih kontak di WA dan mencegah grup banjir chat (*spam* puluhan chat per hari). Untuk grup, cukup gunakan tombol <b>"Rekap ke Grup WA"</b>.
+            </div>
+
             <div class="space-y-4 mb-6">
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Nama Grup WhatsApp:</label>
-                    <input type="text" id="setting-wa-group-name" placeholder="plesiran mts" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <!-- Target Utama: No Bendahara -->
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center justify-between">
+                        <span>Nomor WhatsApp Bendahara (Target Utama):</span>
+                        <span class="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">Direkomendasikan</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm">
+                            <i class="fa-solid fa-phone"></i>
+                        </span>
+                        <input type="text" id="setting-wa-phone" value="+62 857-4342-4187" placeholder="Contoh: +62 857-4342-4187" class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-1">Nomor WA Bendahara yang otomatis menerima rincian siswa lunas & booking kursi.</p>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Link Tautan Undangan Grup WA:</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="setting-wa-group-link" placeholder="https://chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                        <a id="setting-wa-group-link-btn" href="https://chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2" target="_blank" rel="noopener noreferrer" class="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="Buka tautan undangan grup di tab baru">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Tes
-                        </a>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Nama Bendahara / Penerima (Salam Pembuka):</label>
+                    <input type="text" id="setting-wa-name" value="Bendahara Ziarah" placeholder="Ibu Bendahara / Panitia Ziarah Wisata" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <!-- Bagian Gateway API (Otomatis Tanpa Buka WA) -->
+                <div class="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-300 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm font-bold shadow-xs">
+                                <i class="fa-solid fa-bolt"></i>
+                            </span>
+                            <div>
+                                <h4 class="text-xs font-black text-emerald-950 uppercase tracking-wide">Kirim Otomatis Tanpa Buka WA (Gateway API)</h4>
+                                <span class="text-[11px] text-emerald-700">Pesan otomatis terkirim di latar belakang detik itu juga</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-emerald-900 uppercase mb-1">API Token Fonnte (fonnte.com):</label>
+                        <input type="password" id="setting-wa-gateway-token" placeholder="Tempel token API Fonnte di sini..." class="w-full px-3.5 py-2 rounded-xl border border-emerald-300 bg-white font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <div class="flex flex-wrap items-center justify-between gap-1 text-[11px] text-emerald-700 mt-1.5">
+                            <span>💡 <i>Daftar gratis di <b><a href="https://fonnte.com" target="_blank" class="underline font-bold">fonnte.com</a></b> -> scan QR nomor pengirim -> copy token.</i></span>
+                            <button type="button" onclick="testWAGateway()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs transition shadow-xs flex items-center gap-1">
+                                <i class="fa-solid fa-paper-plane text-[10px]"></i> Tes Kirim API
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-emerald-200">
+                        <label class="flex items-start gap-2.5 cursor-pointer">
+                            <input type="checkbox" id="setting-wa-use-gateway" class="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                            <div>
+                                <span class="block text-xs font-bold text-emerald-950">Aktifkan Pengiriman Otomatis di Latar Belakang (Silent Send)</span>
+                                <span class="block text-[11px] text-emerald-700">Jika aktif dan Token terisi, data langsung masuk ke WhatsApp Bendahara/Grup tanpa perlu membuka tab WhatsApp sama sekali!</span>
+                            </div>
+                        </label>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Ditujukan Kepada (Salam Pembuka):</label>
-                    <input type="text" id="setting-wa-name" placeholder="Panitia Ziarah Wisata" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    <p class="text-[11px] text-slate-400 mt-1">Dicantumkan pada salam pembuka: <i>Kepada Yth. *Panitia Ziarah Wisata*,</i></p>
+                <!-- Bagian Grup WA -->
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-users text-indigo-600"></i> Informasi Grup WhatsApp (Untuk Tombol Rekap):
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nama Grup WA:</label>
+                        <input type="text" id="setting-wa-group-name" placeholder="plesiran mts" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Link Tautan Undangan Grup WA:</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="setting-wa-group-link" placeholder="https://chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <a id="setting-wa-group-link-btn" href="https://chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2" target="_blank" rel="noopener noreferrer" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="Buka tautan undangan grup di tab baru">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Tes
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Nomor WhatsApp Spesifik (Opsional):</label>
-                    <input type="text" id="setting-wa-phone" placeholder="Kosongkan jika ingin kirim ke Grup WhatsApp plesiran mts" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    <p class="text-[11px] text-emerald-700 mt-1 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
-                        💡 <b>Untuk Kirim ke Grup WA plesiran mts:</b> Biarkan nomor ini kosong! Saat tombol WhatsApp diklik, WhatsApp langsung menampilkan pilihan kontak/grup sehingga Anda bisa langsung memilih grup <b>plesiran mts</b>.
-                    </p>
-                </div>
-
+                <!-- Opsi Mode Standar -->
                 <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
                     <label class="flex items-start gap-2.5 cursor-pointer">
                         <input type="checkbox" id="setting-wa-auto-open" class="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
                         <div>
-                            <span class="block text-xs font-bold text-slate-800">Buka WhatsApp Langsung (Auto-Redirect)</span>
-                            <span class="block text-[11px] text-slate-500">Otomatis membuka WhatsApp di tab baru saat kursi disimpan untuk siswa lunas tanpa perlu klik konfirmasi manual.</span>
+                            <span class="block text-xs font-bold text-slate-800">Mode Standar: Buka WhatsApp Langsung (Auto-Redirect)</span>
+                            <span class="block text-[11px] text-slate-500">Otomatis membuka WhatsApp di tab baru saat klik Simpan tanpa perlu konfirmasi manual (jika tidak menggunakan API Gateway).</span>
                         </div>
                     </label>
                 </div>
@@ -3980,13 +4080,14 @@
             closeModal();
             showToast("Data siswa berhasil disimpan.");
 
-            // TRIGGER NOTIFIKASI WA BENDAHARA (Jika Lunas & Memilih Kursi)
+            // TRIGGER NOTIFIKASI WA GRUP SAAT SIMPAN (Data Baru / Edit)
+            const isEdit = !!id;
             const sendWaCheckbox = document.getElementById('send-wa-on-save');
             const shouldTriggerWA = !sendWaCheckbox || sendWaCheckbox.checked;
 
-            if (savedParticipant && savedParticipant.paidDate && savedParticipant.seat && shouldTriggerWA) {
+            if (savedParticipant && shouldTriggerWA) {
                 setTimeout(() => {
-                    handlePostSaveSeatWA(savedParticipant);
+                    handlePostSaveSeatWA(savedParticipant, isEdit);
                 }, 250);
             }
         }
@@ -4120,7 +4221,7 @@
             tbody.innerHTML = '';
 
             if (pendampingData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 italic">Belum ada data pendamping. Klik "Tambah Pendamping".</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 italic">Belum ada data pendamping. Klik "Tambah Pendamping" atau "Upload Excel Pendamping".</td></tr>`;
                 return;
             }
 
@@ -4128,35 +4229,54 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-indigo-50/30 transition-colors border-b border-slate-100';
                 
-                let assignmentBadge = `<span class="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200 text-xs">${escapeHTML(item.assignment)}</span>`;
-                if (item.assignment === 'Umum/Panitia') {
-                    assignmentBadge = `<span class="inline-block px-3 py-1 rounded-full bg-slate-900 text-white font-bold text-xs">${escapeHTML(item.assignment)}</span>`;
+                const bisVal = item.assignment || 'Umum/Panitia';
+                let bisBadge = '';
+                if (bisVal.startsWith('BIS')) {
+                    bisBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black shadow-xs text-xs"><i class="fa-solid fa-bus text-[10px]"></i> ${escapeHTML(bisVal)}</span>`;
+                } else {
+                    bisBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900 text-slate-200 font-bold text-xs"><i class="fa-solid fa-shield-halved text-[10px] text-amber-400"></i> ${escapeHTML(bisVal)}</span>`;
                 }
+
+                const roleStr = escapeHTML(item.role || 'Guru Pendamping');
 
                 tr.innerHTML = `
                     <td class="py-3 px-4 text-center text-slate-400 font-medium text-xs">${index + 1}</td>
                     <td class="py-3 px-4 font-bold text-slate-800">${escapeHTML(item.name)}</td>
                     <td class="py-3 px-4 text-center font-bold text-slate-600 text-xs">${item.gender ? (item.gender === 'L' ? '<span class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">L</span>' : '<span class="text-pink-600 bg-pink-50 px-2 py-0.5 rounded-md border border-pink-100">P</span>') : '-'}</td>
-                    <td class="py-3 px-4 text-slate-600 font-medium text-xs"><i class="fa-brands fa-whatsapp text-emerald-500 mr-1.5"></i> ${escapeHTML(item.phone || '-')}</td>
-                    <td class="py-3 px-4">${assignmentBadge}</td>
+                    <td class="py-3 px-4 text-slate-600 font-medium text-xs">
+                        ${item.phone ? `<a href="https://wa.me/${formatWAPhone(item.phone)}" target="_blank" rel="noopener noreferrer" class="hover:underline text-emerald-700 font-mono inline-flex items-center gap-1"><i class="fa-brands fa-whatsapp text-emerald-500"></i> ${escapeHTML(item.phone)}</a>` : '<span class="text-slate-400 italic text-xs">-</span>'}
+                    </td>
+                    <td class="py-3 px-4 text-slate-700 font-semibold text-xs">${roleStr}</td>
                     <td class="py-3 px-4 text-center">
-                        <div class="flex justify-center gap-1.5" id="pend-act-${CSS.escape(item.id)}"></div>
+                        <div class="flex items-center justify-center gap-2">
+                            ${bisBadge}
+                            <div class="flex items-center gap-1.5 no-print" id="pend-act-${CSS.escape(item.id)}"></div>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
 
                 const actDiv = tr.querySelector(`#pend-act-${CSS.escape(item.id)}`);
                 if (actDiv) {
+                    const waBtn = document.createElement('button');
+                    waBtn.className = 'w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition border border-emerald-200 text-xs';
+                    waBtn.title = 'Kirim Data Pendamping ke Grup WA plesiran mts';
+                    waBtn.innerHTML = '<i class="fa-brands fa-whatsapp text-sm"></i>';
+                    waBtn.onclick = () => openWAPendampingModal(item);
+
                     const editBtn = document.createElement('button');
                     editBtn.className = 'w-7 h-7 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs flex items-center justify-center border border-blue-200';
+                    editBtn.title = 'Edit Data';
                     editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
                     editBtn.onclick = () => openPendampingModal(item.id);
                     
                     const delBtn = document.createElement('button');
                     delBtn.className = 'w-7 h-7 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs flex items-center justify-center border border-rose-200';
+                    delBtn.title = 'Hapus';
                     delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
                     delBtn.onclick = () => deletePendampingItem(item.id);
 
+                    actDiv.appendChild(waBtn);
                     actDiv.appendChild(editBtn);
                     actDiv.appendChild(delBtn);
                 }
@@ -4173,6 +4293,9 @@
                 Tambah Pendamping Baru
             `;
 
+            const targetLabel = document.getElementById('wa-pendamping-modal-target');
+            if (targetLabel) targetLabel.innerHTML = `Tujuan: <b>Grup WA ${escapeHTML(getWAGroupName())}</b>`;
+
             if (id) {
                 const item = pendampingData.find(p => p.id === id);
                 if (item) {
@@ -4186,8 +4309,13 @@
                     document.getElementById('pendamping-name').value = item.name;
                     document.getElementById('pendamping-gender').value = item.gender || '';
                     document.getElementById('pendamping-phone').value = item.phone || '';
+                    const roleInput = document.getElementById('pendamping-role');
+                    if (roleInput) roleInput.value = item.role || 'Guru Pendamping';
                     document.getElementById('pendamping-assignment').value = item.assignment || 'Umum/Panitia';
                 }
+            } else {
+                const roleInput = document.getElementById('pendamping-role');
+                if (roleInput) roleInput.value = 'Guru Pendamping';
             }
 
             openModal('pendamping-modal');
@@ -4202,6 +4330,8 @@
             const name = document.getElementById('pendamping-name').value.trim();
             const gender = document.getElementById('pendamping-gender').value;
             const phone = document.getElementById('pendamping-phone').value.trim();
+            const roleInput = document.getElementById('pendamping-role');
+            const role = (roleInput ? roleInput.value.trim() : '') || 'Guru Pendamping';
             const assignment = document.getElementById('pendamping-assignment').value;
 
             if (!name) {
@@ -4209,28 +4339,45 @@
                 return;
             }
 
+            const isEdit = !!id;
+            let savedItem = null;
+
             if (id) {
                 const idx = pendampingData.findIndex(p => p.id === id);
                 if (idx !== -1) {
                     pendampingData[idx].name = name;
                     pendampingData[idx].gender = gender;
                     pendampingData[idx].phone = phone;
+                    pendampingData[idx].role = role;
                     pendampingData[idx].assignment = assignment;
+                    savedItem = pendampingData[idx];
                 }
             } else {
-                pendampingData.push({
+                savedItem = {
                     id: generateId(),
                     name: name,
                     gender: gender,
                     phone: phone,
+                    role: role,
                     assignment: assignment
-                });
+                };
+                pendampingData.push(savedItem);
             }
 
             savePendampingToLocalStorage();
             renderPendampingTable();
             closePendampingModal();
             showToast("Data pendamping berhasil disimpan.");
+
+            // TRIGGER NOTIFIKASI WA GRUP SAAT SIMPAN
+            const sendWaCheckbox = document.getElementById('send-pendamping-wa-on-save');
+            const shouldTriggerWA = !sendWaCheckbox || sendWaCheckbox.checked;
+
+            if (savedItem && shouldTriggerWA) {
+                setTimeout(() => {
+                    handlePostSavePendampingWA(savedItem, isEdit);
+                }, 250);
+            }
         }
 
         function deletePendampingItem(id) {
@@ -4246,16 +4393,426 @@
             );
         }
 
-        function exportPendampingCSV() {
-            let csv = "No,Nama Pendamping,L/P,No HP,Penugasan\n";
+        function deleteAllPendamping() {
+            if (pendampingData.length === 0) {
+                showToast("Belum ada data pendamping untuk dihapus.", "warning");
+                return;
+            }
+            showConfirm(
+                "Hapus Semua Pendamping",
+                `Anda yakin ingin menghapus <b>seluruh data (${pendampingData.length} guru pendamping)</b> secara permanen?`,
+                () => {
+                    pendampingData = [];
+                    savePendampingToLocalStorage();
+                    renderPendampingTable();
+                    showToast("Seluruh data pendamping telah dihapus.", "success");
+                }
+            );
+        }
+
+        function exportPendampingExcel() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Pustaka SheetJS belum siap, beralih ke CSV...", "warning");
+                exportPendampingCSV();
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const aoa = [
+                ["No", "Nama Pendamping", "L/P", "No HP / WhatsApp", "Penugasan", "BIS"]
+            ];
+
             pendampingData.forEach((item, idx) => {
-                csv += `${idx + 1},${escapeCSV(item.name)},${item.gender || '-'},${escapeCSV(item.phone || '-')},${escapeCSV(item.assignment)}\n`;
+                aoa.push([
+                    idx + 1,
+                    item.name || '',
+                    item.gender || '-',
+                    item.phone || '-',
+                    item.role || 'Guru Pendamping',
+                    item.assignment || 'Umum/Panitia'
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+            ws['!cols'] = [{ wch: 6 }, { wch: 32 }, { wch: 8 }, { wch: 20 }, { wch: 24 }, { wch: 16 }];
+            XLSX.utils.book_append_sheet(wb, ws, "Data Pendamping");
+            XLSX.writeFile(wb, "Data_Pendamping_Guru_Ziarah.xlsx");
+            showToast("File Excel data pendamping berhasil diunduh.", "success");
+        }
+
+        function exportPendampingCSV() {
+            let csv = "No,Nama Pendamping,L/P,No HP,Penugasan,BIS\n";
+            pendampingData.forEach((item, idx) => {
+                csv += `${idx + 1},${escapeCSV(item.name)},${item.gender || '-'},${escapeCSV(item.phone || '-')},${escapeCSV(item.role || 'Guru Pendamping')},${escapeCSV(item.assignment || 'Umum/Panitia')}\n`;
             });
             downloadCSV(`Data_Pendamping_Guru.csv`, csv);
             showToast("File data pendamping berhasil diunduh.", "success");
         }
 
         // ============================================================
+        // FITUR UNGGAH EXCEL UNTUK DATA PENDAMPING
+        // ============================================================
+        function handlePendampingExcelUpload(event) {
+            const inputEl = event.target;
+            const file = inputEl.files[0];
+            if (!file) return;
+
+            if (typeof XLSX === 'undefined') {
+                showToast("Library SheetJS (Excel) belum siap. Periksa koneksi internet.", "error");
+                inputEl.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+
+                    // Deteksi jika file berformat Excel Web Page / Frameset
+                    const sampleText = new TextDecoder('utf-8', {fatal: false}).decode(data.subarray(0, Math.min(data.length, 4000)));
+                    if (sampleText.includes('<frameset') || sampleText.includes('Excel Workbook Frameset') || sampleText.includes('frSheet')) {
+                        alert(
+                            "⚠️ PEMBERITAHUAN FORMAT EXCEL:\n\n" +
+                            "File '" + file.name + "' disimpan dengan format 'Web Page (Frameset)' oleh Microsoft Excel, bukan file buku kerja standar (.xlsx).\n\n" +
+                            "CARA MENGATASI:\n" +
+                            "1. Buka file di Microsoft Excel\n" +
+                            "2. Klik menu File -> Save As\n" +
+                            "3. Pada 'Save as type', pilih 'Excel Workbook (*.xlsx)'\n" +
+                            "4. Upload file .xlsx tersebut ke aplikasi ini."
+                        );
+                        inputEl.value = "";
+                        return;
+                    }
+
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheet];
+                    
+                    const json = XLSX.utils.sheet_to_json(worksheet, {header: 1}); 
+                    if (!json || json.length === 0) {
+                        showToast("File Excel kosong!", "warning");
+                        inputEl.value = "";
+                        return;
+                    }
+
+                    // Smart detection header kolom
+                    let headerRowIndex = -1;
+                    let colName = -1;
+                    let colGender = -1;
+                    let colPhone = -1;
+                    let colRole = -1;
+                    let colBis = -1;
+
+                    for (let r = 0; r < Math.min(json.length, 10); r++) {
+                        const row = json[r];
+                        if (!row || !Array.isArray(row)) continue;
+
+                        for (let c = 0; c < row.length; c++) {
+                            const val = String(row[c] || '').trim().toLowerCase();
+                            if (!val) continue;
+
+                            if (val.includes('nama') || val.includes('pendamping') || val.includes('guru') || val.includes('pembimbing') || val.includes('ustadz')) {
+                                colName = c;
+                            } else if (val === 'l/p' || val === 'lp' || val.includes('kelamin') || val.includes('gender') || val === 'jk') {
+                                colGender = c;
+                            } else if (val.includes('hp') || val.includes('wa') || val.includes('telepon') || val.includes('telp') || val.includes('phone') || val.includes('kontak')) {
+                                colPhone = c;
+                            } else if (val === 'bis' || val === 'bus' || val.includes('armada')) {
+                                colBis = c;
+                            } else if (val.includes('penugasan') || val.includes('tugas') || val.includes('posisi') || val.includes('jabatan') || val.includes('keterangan')) {
+                                colRole = c;
+                            }
+                        }
+
+                        if (colName !== -1) {
+                            headerRowIndex = r;
+                            break;
+                        }
+                    }
+
+                    // Fallback posisi kolom
+                    if (colName === -1) colName = 1;
+                    if (colGender === -1) colGender = 2;
+                    if (colPhone === -1) colPhone = 3;
+                    if (colBis === -1 && colRole === -1) {
+                        colRole = 4;
+                        colBis = (json[0] && json[0].length >= 6) ? 5 : 4;
+                    } else if (colBis === -1 && colRole !== -1) {
+                        colBis = colRole;
+                    }
+
+                    const startRow = (headerRowIndex !== -1) ? headerRowIndex + 1 : 0;
+                    let addedCount = 0;
+                    let updatedCount = 0;
+
+                    for (let i = startRow; i < json.length; i++) {
+                        const row = json[i];
+                        if (!row || row.length === 0) continue;
+
+                        let name = (colName !== -1 && row[colName] !== undefined) ? String(row[colName]).trim() : '';
+                        if (!name) continue;
+
+                        const nameLower = name.toLowerCase();
+                        if (nameLower === 'nama' || nameLower === 'nama pendamping' || nameLower === 'nama guru' || nameLower === 'pembimbing') continue;
+                        if (name.startsWith('"+') || name.startsWith('="') || name.includes('parent.document') || name.length < 2) continue;
+
+                        let gender = (colGender !== -1 && row[colGender] !== undefined) ? String(row[colGender]).trim().toUpperCase() : '';
+                        if (gender !== 'L' && gender !== 'P') gender = '';
+
+                        let phone = (colPhone !== -1 && row[colPhone] !== undefined) ? String(row[colPhone]).trim().replace(/[^0-9+]/g, '') : '';
+
+                        let roleVal = (colRole !== -1 && row[colRole] !== undefined) ? String(row[colRole]).trim() : 'Guru Pendamping';
+
+                        // Normalisasi penugasan armada BIS
+                        let rawBis = (colBis !== -1 && row[colBis] !== undefined) ? String(row[colBis]).trim().toUpperCase() : '';
+                        let assignmentVal = 'Umum/Panitia';
+
+                        for (let b = 1; b <= 7; b++) {
+                            if (rawBis.includes(`BIS ${b}`) || rawBis.includes(`BUS ${b}`) || rawBis === String(b) || rawBis.includes(`B${b}`)) {
+                                assignmentVal = `BIS ${b}`;
+                                break;
+                            }
+                        }
+
+                        // Jika kolom role bernilai sama dengan assignmentVal, jadikan role 'Guru Pendamping'
+                        if (roleVal.toUpperCase().includes('BIS') || roleVal.toUpperCase().includes('BUS')) {
+                            roleVal = 'Guru Pendamping';
+                        }
+
+                        // Cek apakah pendamping sudah terdaftar
+                        const existingIdx = pendampingData.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+                        if (existingIdx !== -1) {
+                            if (gender) pendampingData[existingIdx].gender = gender;
+                            if (phone) pendampingData[existingIdx].phone = phone;
+                            if (roleVal && roleVal !== 'Guru Pendamping') pendampingData[existingIdx].role = roleVal;
+                            if (assignmentVal !== 'Umum/Panitia') pendampingData[existingIdx].assignment = assignmentVal;
+                            updatedCount++;
+                        } else {
+                            pendampingData.push({
+                                id: generateId(),
+                                name: name,
+                                gender: gender,
+                                phone: phone,
+                                role: roleVal || 'Guru Pendamping',
+                                assignment: assignmentVal
+                            });
+                            addedCount++;
+                        }
+                    }
+
+                    if (addedCount > 0 || updatedCount > 0) {
+                        savePendampingToLocalStorage();
+                        renderPendampingTable();
+                        let msg = `Berhasil mengimpor data pendamping! (${addedCount} pendamping baru ditambahkan`;
+                        if (updatedCount > 0) msg += `, ${updatedCount} diperbarui`;
+                        msg += `).`;
+                        showToast(msg, 'success');
+                    } else {
+                        showToast("Tidak ada data pendamping yang valid pada file Excel. Pastikan terdapat kolom Nama Pendamping.", "warning");
+                    }
+                } catch (error) {
+                    showToast("Terjadi kesalahan saat membaca file Excel Pendamping: " + error.message, "error");
+                    console.error("Pendamping Excel upload error:", error);
+                }
+                inputEl.value = "";
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ============================================================
+        // NOTIFIKASI WA UNTUK PENDAMPING & REKAP PENDAMPING
+        // ============================================================
+        let currentWAPendamping = null;
+
+        function generatePendampingWAMessage(item, isEdit = false) {
+            if (!item) return '';
+            const now = new Date();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const day = String(now.getDate()).padStart(2, '0');
+            const monthStr = months[now.getMonth()];
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const timeStr = `${day} ${monthStr} ${year} ${hours}.${mins}`;
+
+            const genderStr = item.gender === 'L' ? 'Laki-laki' : (item.gender === 'P' ? 'Perempuan' : '-');
+            const operatorStr = (typeof currentOperator !== 'undefined' && currentOperator && currentOperator.name) ? currentOperator.name : 'PC 1 (Admin Utama)';
+            const recipientStr = getWABendaharaName() || 'Panitia Ziarah Wisata';
+            const roleStr = item.role || 'Guru Pendamping';
+            const actionTitle = isEdit ? 'PERUBAHAN / EDIT DATA PENDAMPING' : 'DATA PENDAMPING BARU';
+
+            return `📢 *${actionTitle} - OUTING CLASS ZIARAH*
+━━━━━━━━━━━━━━━━━━━━
+Kepada Yth. *${recipientStr} (Grup ${getWAGroupName()})*,
+Berikut data pendamping/guru yang telah diisi/diedit di sistem:
+
+👤 *Nama Pendamping:* ${item.name}
+🚻 *Jenis Kelamin:* ${genderStr}
+📱 *No. HP / WA:* ${item.phone || '-'}
+💼 *Penugasan / Tugas:* ${roleStr}
+🚌 *Armada BIS:* ${item.assignment || 'Umum/Panitia'}
+📝 *Status Tindakan:* ${isEdit ? '✏️ Data Pendamping Diperbarui' : '✨ Pendamping Baru Ditambahkan'}
+⏰ *Waktu:* ${timeStr}
+🖥️ *Diinput oleh:* ${operatorStr}
+━━━━━━━━━━━━━━━━━━━━
+_Data telah disimpan dan disinkronkan ke Sistem Manajemen Ziarah & Bus._`;
+        }
+
+        async function handlePostSavePendampingWA(item, isEdit = false) {
+            currentWAParticipant = null;
+            currentWAPendamping = item;
+
+            const cleanPhone = formatWAPhone(getWABendaharaPhone());
+            const textMsg = generatePendampingWAMessage(item, isEdit);
+
+            // Selalu salin pesan ke clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textMsg).catch(() => {});
+            }
+
+            // 1. JIKA GATEWAY API AKTIF: KIRIM OTOMATIS 100% DI LATAR BELAKANG TANPA BUKA WHATSAPP
+            if (isWAGatewayActive()) {
+                showToast("Mengirim notifikasi pendamping ke WhatsApp di latar belakang...", "info");
+                const target = getWABendaharaPhone() || getWAGroupName();
+                const res = await sendViaWAGateway(target, textMsg);
+                if (res.success) {
+                    showToast(`✅ Data pendamping ${item.name} otomatis terkirim ke WhatsApp tanpa membuka WA!`, "success");
+                    return;
+                } else {
+                    showToast(`⚠️ Gateway API gagal: ${res.error}. Beralih ke WhatsApp Web...`, "warning");
+                }
+            }
+
+            // 2. JIKA AUTO-REDIRECT AKTIF: BUKA WHATSAPP LANGSUNG
+            if (isWAAutoOpen()) {
+                const waUrl = cleanPhone ?
+                    `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(textMsg)}` :
+                    `https://api.whatsapp.com/send?text=${encodeURIComponent(textMsg)}`;
+                window.open(waUrl, '_blank');
+                showToast(`Membuka WhatsApp untuk kirim data pendamping ${item.name}...`, "info");
+                return;
+            }
+
+            // 3. TAMPILKAN MODAL KONFIRMASI WA
+            openWAPendampingModal(item, isEdit);
+        }
+
+        function openWAPendampingModal(item, isEdit = false) {
+            currentWAParticipant = null;
+            currentWAPendamping = item;
+            if (!item) return;
+
+            const modalTitle = document.getElementById('wa-notif-modal-heading');
+            if (modalTitle) modalTitle.innerText = isEdit ? 'Update Pendamping ke Grup WA' : 'Konfirmasi Pendamping ke Grup WA';
+            
+            const subTitle = document.getElementById('wa-notif-modal-subheading');
+            if (subTitle) subTitle.innerHTML = `Kirim data pendamping ke Grup <b>${escapeHTML(getWAGroupName())}</b>`;
+
+            const nameEl = document.getElementById('wa-notif-student-name');
+            if (nameEl) nameEl.innerText = item.name;
+
+            const classEl = document.getElementById('wa-notif-student-class');
+            if (classEl) classEl.innerText = `Tugas: ${item.role || 'Guru Pendamping'}`;
+
+            const genderEl = document.getElementById('wa-notif-student-gender');
+            if (genderEl) genderEl.innerText = item.gender === 'L' ? 'Laki-laki' : (item.gender === 'P' ? 'Perempuan' : '-');
+
+            const busTitleEl = document.getElementById('wa-notif-bus-title');
+            if (busTitleEl) busTitleEl.innerText = item.assignment || 'Umum/Panitia';
+
+            const seatBadge = document.getElementById('wa-notif-seat-badge');
+            if (seatBadge) seatBadge.innerText = item.phone ? `HP: ${item.phone}` : 'Tanpa No HP';
+
+            const groupTitle = document.getElementById('wa-notif-group-title');
+            if (groupTitle) groupTitle.innerText = `Grup WA: ${getWAGroupName()}`;
+
+            const groupHref = document.getElementById('wa-notif-group-link-href');
+            if (groupHref) {
+                groupHref.href = getWAGroupLink();
+                groupHref.innerText = getWAGroupLink().replace(/^https?:\/\//i, '');
+            }
+
+            const phoneInput = document.getElementById('wa-notif-phone-input');
+            if (phoneInput) phoneInput.value = getWABendaharaPhone();
+
+            const previewArea = document.getElementById('wa-notif-message-preview');
+            const textMsg = generatePendampingWAMessage(item, isEdit);
+            if (previewArea) previewArea.value = textMsg;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textMsg).catch(() => {});
+            }
+
+            openModal('wa-notify-modal');
+        }
+
+        function generatePendampingRekapWAMessage() {
+            const now = new Date();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const day = String(now.getDate()).padStart(2, '0');
+            const monthStr = months[now.getMonth()];
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const timeStr = `${day} ${monthStr} ${year} ${hours}.${mins}`;
+
+            const operatorStr = (typeof currentOperator !== 'undefined' && currentOperator && currentOperator.name) ? currentOperator.name : 'PC 1 (Admin Utama)';
+            const recipientStr = getWABendaharaName() || 'Panitia Ziarah Wisata';
+
+            let listStr = '';
+            if (pendampingData.length === 0) {
+                listStr = '_Belum ada data pendamping yang terdaftar._\n';
+            } else {
+                for (let b = 1; b <= 7; b++) {
+                    const busPend = pendampingData.filter(p => p.assignment === `BIS ${b}`);
+                    if (busPend.length > 0) {
+                        listStr += `\n🚌 *BIS ${b}:*\n`;
+                        busPend.forEach((p, idx) => {
+                            listStr += `  ${idx + 1}. ${p.name} (${p.role || 'Pendamping'}${p.phone ? ' - ' + p.phone : ''})\n`;
+                        });
+                    }
+                }
+                const umumPend = pendampingData.filter(p => !p.assignment || p.assignment === 'Umum/Panitia');
+                if (umumPend.length > 0) {
+                    listStr += `\n🛡️ *UMUM / PANITIA INTI:*\n`;
+                    umumPend.forEach((p, idx) => {
+                        listStr += `  ${idx + 1}. ${p.name} (${p.role || 'Panitia'}${p.phone ? ' - ' + p.phone : ''})\n`;
+                    });
+                }
+            }
+
+            return `📋 *REKAP DATA PENDAMPING & GURU - ZIARAH WISATA*
+━━━━━━━━━━━━━━━━━━━━
+Kepada Yth. *${recipientStr} (Grup ${getWAGroupName()})*,
+Berikut rekapitulasi data seluruh pembimbing/guru dan penugasan armada BIS:
+
+👥 *Total Pendamping:* ${pendampingData.length} Orang
+${listStr}
+━━━━━━━━━━━━━━━━━━━━
+_Waktu Rekap: ${timeStr}_
+_Operator Pelapor: ${operatorStr}_
+_Grup Tujuan: ${getWAGroupName()}_
+_Mohon dikoordinasikan demi kelancaran outing class ziarah wisata._`;
+        }
+
+        function sendPendampingRekapToWA() {
+            const subTitle = document.getElementById('wa-rekap-modal-sub');
+            if (subTitle) subTitle.innerText = `Rekapitulasi Data Pendamping & Guru ke Grup WA ${getWAGroupName()}`;
+
+            const phoneInput = document.getElementById('wa-rekap-phone-input');
+            if (phoneInput) phoneInput.value = getWABendaharaPhone();
+
+            const previewArea = document.getElementById('wa-rekap-message-preview');
+            const textMsg = generatePendampingRekapWAMessage();
+            if (previewArea) previewArea.value = textMsg;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textMsg).catch(() => {});
+            }
+
+            openModal('wa-rekap-modal');
+        }
+
         // MULTI-PC SYNCHRONIZATION & OPERATOR SESSION ENGINE
         // ============================================================
         let currentOperator = {
@@ -4348,20 +4905,91 @@
         function getWABendaharaName() {
             const name = localStorage.getItem('wa_bendahara_name');
             if (!name || name.trim() === '' || name === 'Bendahara Panitia' || name === 'Grup WhatsApp Panitia') {
-                return 'Panitia Ziarah Wisata';
+                return 'Bendahara Ziarah';
             }
             return name.trim();
         }
 
         function getWABendaharaPhone() {
-            return localStorage.getItem('wa_bendahara_phone') || '';
+            const phone = localStorage.getItem('wa_bendahara_phone');
+            if (phone && phone.trim()) return phone.trim();
+            return '+62 857-4342-4187';
         }
 
         function isWAAutoOpen() {
             return localStorage.getItem('wa_auto_open') === 'true';
         }
 
-        function formatWAPhone(phone) {
+                // ============================================================
+        // WHATSAPP GATEWAY API (PENGIRIMAN OTOMATIS TANPA BUKA WA)
+        // ============================================================
+        function getWAGatewayToken() {
+            return (localStorage.getItem('wa_gateway_token') || '').trim();
+        }
+
+        function isWAGatewayActive() {
+            return localStorage.getItem('wa_use_gateway') === 'true' && !!getWAGatewayToken();
+        }
+
+        async function sendViaWAGateway(target, message) {
+            const token = getWAGatewayToken();
+            if (!token) return { success: false, error: 'Token API Fonnte belum diisi di Pengaturan WA.' };
+
+            const cleanTarget = formatWAPhone(target) || target;
+            if (!cleanTarget) return { success: false, error: 'Nomor WhatsApp tujuan belum diisi.' };
+
+            const formData = new FormData();
+            formData.append('target', cleanTarget);
+            formData.append('message', message);
+
+            try {
+                const res = await fetch('https://api.fonnte.com/send', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token
+                    },
+                    body: formData
+                });
+                const data = await res.json();
+                if (data && (data.status === true || data.status === 'true' || data.status === 'success')) {
+                    return { success: true, data: data };
+                } else {
+                    return { success: false, error: data.reason || data.message || 'Gagal mengirim melalui API Fonnte' };
+                }
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        }
+
+        async function testWAGateway() {
+            const tokenInput = document.getElementById('setting-wa-gateway-token');
+            const token = tokenInput ? tokenInput.value.trim() : '';
+            const phoneInput = document.getElementById('setting-wa-phone');
+            const targetPhone = phoneInput ? phoneInput.value.trim() : '';
+
+            if (!token) {
+                showToast("Masukkan Token API Fonnte terlebih dahulu!", "warning");
+                return;
+            }
+            if (!targetPhone) {
+                showToast("Masukkan Nomor WhatsApp Bendahara tujuan terlebih dahulu!", "warning");
+                return;
+            }
+
+            showToast("Mengirim pesan tes melalui Gateway...", "info");
+            localStorage.setItem('wa_gateway_token', token);
+
+            const testMsg = `🔔 *TES KONEKSI WHATSAPP GATEWAY BERHASIL*\n━━━━━━━━━━━━━━━━━━━━\nAplikasi Sistem Manajemen Ziarah Wisata terhubung sempurna dengan WhatsApp Gateway API.\nPesan ini terkirim otomatis di latar belakang tanpa membuka WhatsApp! 🚀`;
+
+            const res = await sendViaWAGateway(targetPhone, testMsg);
+            if (res.success) {
+                showToast("✅ Berhasil! Pesan tes telah terkirim ke WhatsApp Bendahara tanpa membuka WA.", "success");
+            } else {
+                showToast("❌ Gagal mengirim: " + res.error, "error");
+            }
+        }
+
+function formatWAPhone(phone) {
             if (!phone) return '';
             let cleaned = phone.replace(/[^0-9]/g, '');
             if (cleaned.startsWith('0')) {
@@ -4428,6 +5056,12 @@
             if (testBtn) testBtn.href = getWAGroupLink();
             if (autoOpenInput) autoOpenInput.checked = isWAAutoOpen();
 
+            const gatewayTokenInput = document.getElementById('setting-wa-gateway-token');
+            if (gatewayTokenInput) gatewayTokenInput.value = getWAGatewayToken();
+
+            const useGatewayInput = document.getElementById('setting-wa-use-gateway');
+            if (useGatewayInput) useGatewayInput.checked = (localStorage.getItem('wa_use_gateway') === 'true');
+
             openModal('wa-settings-modal');
         }
 
@@ -4438,11 +5072,16 @@
             const groupLinkVal = (document.getElementById('setting-wa-group-link').value || '').trim() || 'https://chat.whatsapp.com/KrtrJYomrbwDQBgrCpS8Y2';
             const autoOpenVal = document.getElementById('setting-wa-auto-open').checked;
 
+            const gatewayTokenVal = (document.getElementById('setting-wa-gateway-token').value || '').trim();
+            const useGatewayVal = document.getElementById('setting-wa-use-gateway').checked;
+
             localStorage.setItem('wa_bendahara_phone', phoneVal);
             localStorage.setItem('wa_bendahara_name', nameVal);
             localStorage.setItem('wa_group_name', groupNameVal);
             localStorage.setItem('wa_group_link', groupLinkVal);
             localStorage.setItem('wa_auto_open', autoOpenVal ? 'true' : 'false');
+            localStorage.setItem('wa_gateway_token', gatewayTokenVal);
+            localStorage.setItem('wa_use_gateway', useGatewayVal ? 'true' : 'false');
 
             updateWASettingsUI();
             closeModalById('wa-settings-modal');
@@ -4467,7 +5106,7 @@
             }
         }
 
-        function generateStudentWAMessage(p) {
+        function generateStudentWAMessage(p, isEdit = false) {
             if (!p) return '';
             const busNo = p.busId || currentBus;
             const now = new Date();
@@ -4482,36 +5121,54 @@
             const genderStr = p.gender === 'L' ? 'Laki-laki' : (p.gender === 'P' ? 'Perempuan' : '-');
             const operatorStr = (typeof currentOperator !== 'undefined' && currentOperator && currentOperator.name) ? currentOperator.name : 'PC 1 (Admin Utama)';
             const recipientStr = getWABendaharaName() || 'Panitia Ziarah Wisata';
-            const seatPad = String(p.seat).padStart(2, '0');
+            const seatStr = (p.seat !== null && p.seat !== undefined && p.seat !== '') ? `Kursi #${String(p.seat).padStart(2, '0')}` : '(Belum Pilih Kursi)';
+            const paidStr = p.paidDate ? `✅ LUNAS (${p.paidDate})` : '⏳ Belum Lunas';
+            const actionTitle = isEdit ? 'PERUBAHAN / EDIT DATA SISWA' : 'PENDAFTARAN SISWA BARU';
 
-            return `📢 *KONFIRMASI BOOKING KURSI BUS ZIARAH*
+            return `📢 *${actionTitle} - OUTING CLASS ZIARAH*
 ━━━━━━━━━━━━━━━━━━━━
-Kepada Yth. *${recipientStr}*,
-Berikut data konfirmasi siswa yang telah lunas dan memilih kursi armada:
+Kepada Yth. *${recipientStr} (Grup ${getWAGroupName()})*,
+Berikut pembaruan data siswa yang telah disimpan/diedit:
 
 👤 *Nama Siswa:* ${p.name}
 🚻 *Jenis Kelamin:* ${genderStr}
 🏫 *Kelas / Asal:* ${p.class || '-'}
 🚌 *Armada Bus:* BIS ${busNo}
-💺 *Nomor Kursi:* Kursi #${seatPad}
-💰 *Status:* ✅ *LUNAS*
-📅 *Tanggal Lunas:* ${p.paidDate || '-'}
-⏰ *Waktu Konfirmasi:* ${timeStr}
+💺 *Nomor Kursi:* ${seatStr}
+💰 *Status Pembayaran:* ${paidStr}
+📝 *Status Tindakan:* ${isEdit ? '✏️ Data Siswa Diperbarui (Edit)' : '✨ Data Siswa Baru Ditambahkan'}
+⏰ *Waktu:* ${timeStr}
 🖥️ *Diinput oleh:* ${operatorStr}
 ━━━━━━━━━━━━━━━━━━━━
-_Mohon dicatat & direkap ke pembukuan kas/manifest. Terima kasih._`;
+_Data tersimpan di Sistem Manajemen Ziarah Wisata & Bus._`;
         }
 
-        function handlePostSaveSeatWA(p) {
+        async function handlePostSaveSeatWA(p, isEdit = false) {
+            currentWAPendamping = null;
             currentWAParticipant = p;
             const cleanPhone = formatWAPhone(getWABendaharaPhone());
-            const textMsg = generateStudentWAMessage(p);
+            const textMsg = generateStudentWAMessage(p, isEdit);
 
-            // Jika user mengaktifkan Auto-Redirect di settings
-            if (isWAAutoOpen()) {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(textMsg).catch(() => {});
+            // Selalu salin pesan ke clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textMsg).catch(() => {});
+            }
+
+            // 1. JIKA GATEWAY API AKTIF: KIRIM OTOMATIS 100% DI LATAR BELAKANG TANPA BUKA WHATSAPP
+            if (isWAGatewayActive()) {
+                showToast("Mengirim notifikasi siswa ke WhatsApp di latar belakang...", "info");
+                const target = getWABendaharaPhone() || getWAGroupName();
+                const res = await sendViaWAGateway(target, textMsg);
+                if (res.success) {
+                    showToast(`✅ Data siswa ${p.name} otomatis terkirim ke WhatsApp tanpa membuka WA!`, "success");
+                    return;
+                } else {
+                    showToast(`⚠️ Gateway API gagal: ${res.error}. Beralih ke WhatsApp Web...`, "warning");
                 }
+            }
+
+            // 2. JIKA AUTO-REDIRECT AKTIF: BUKA WHATSAPP LANGSUNG
+            if (isWAAutoOpen()) {
                 const waUrl = cleanPhone ? 
                     `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(textMsg)}` :
                     `https://api.whatsapp.com/send?text=${encodeURIComponent(textMsg)}`;
@@ -4520,19 +5177,26 @@ _Mohon dicatat & direkap ke pembukuan kas/manifest. Terima kasih._`;
                 return;
             }
 
-            // Tampilkan modal konfirmasi WA
-            openWAConfirmModal(p);
+            // 3. TAMPILKAN MODAL KONFIRMASI WA
+            openWAConfirmModal(p, isEdit);
         }
 
-        function openWAConfirmModal(p) {
+        function openWAConfirmModal(p, isEdit = false) {
             currentWAParticipant = p;
+            currentWAPendamping = null;
             if (!p) return;
+
+            const modalTitle = document.getElementById('wa-notif-modal-heading');
+            if (modalTitle) modalTitle.innerText = isEdit ? 'Update Data Siswa ke Grup WA' : 'Konfirmasi Kursi ke Grup WA';
+
+            const subTitle = document.getElementById('wa-notif-modal-subheading');
+            if (subTitle) subTitle.innerHTML = `Kirim notifikasi ke Grup <b>${escapeHTML(getWAGroupName())}</b>`;
 
             document.getElementById('wa-notif-student-name').innerText = p.name;
             document.getElementById('wa-notif-student-class').innerText = `Kelas ${p.class || '-'}`;
             document.getElementById('wa-notif-student-gender').innerText = p.gender === 'L' ? 'Laki-laki' : (p.gender === 'P' ? 'Perempuan' : '-');
             document.getElementById('wa-notif-bus-title').innerText = `BIS ${p.busId || currentBus}`;
-            document.getElementById('wa-notif-seat-badge').innerText = `Kursi #${String(p.seat).padStart(2, '0')}`;
+            document.getElementById('wa-notif-seat-badge').innerText = (p.seat !== null && p.seat !== undefined && p.seat !== '') ? `Kursi #${String(p.seat).padStart(2, '0')}` : 'Belum Ada Kursi';
             
             const groupTitle = document.getElementById('wa-notif-group-title');
             if (groupTitle) groupTitle.innerText = `Grup WA: ${getWAGroupName()}`;
@@ -4546,7 +5210,12 @@ _Mohon dicatat & direkap ke pembukuan kas/manifest. Terima kasih._`;
             if (phoneInput) phoneInput.value = getWABendaharaPhone();
 
             const previewArea = document.getElementById('wa-notif-message-preview');
-            if (previewArea) previewArea.value = generateStudentWAMessage(p);
+            const textMsg = generateStudentWAMessage(p, isEdit);
+            if (previewArea) previewArea.value = textMsg;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textMsg).catch(() => {});
+            }
 
             openModal('wa-notify-modal');
         }
@@ -4572,13 +5241,14 @@ _Mohon dicatat & direkap ke pembukuan kas/manifest. Terima kasih._`;
         }
 
         function sendWAClick() {
-            if (!currentWAParticipant) {
-                closeModalById('wa-notify-modal');
-                return;
-            }
             const phoneInputVal = (document.getElementById('wa-notif-phone-input').value || '').trim();
             const cleanPhone = formatWAPhone(phoneInputVal || getWABendaharaPhone());
-            const textMsg = document.getElementById('wa-notif-message-preview').value || generateStudentWAMessage(currentWAParticipant);
+            const previewArea = document.getElementById('wa-notif-message-preview');
+            let textMsg = previewArea ? previewArea.value : '';
+            if (!textMsg) {
+                if (currentWAParticipant) textMsg = generateStudentWAMessage(currentWAParticipant);
+                else if (currentWAPendamping) textMsg = generatePendampingWAMessage(currentWAPendamping);
+            }
 
             // Selalu salin pesan ke clipboard agar pengguna bisa langsung Ctrl+V di grup bila dibutuhkan
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -4591,7 +5261,7 @@ _Mohon dicatat & direkap ke pembukuan kas/manifest. Terima kasih._`;
 
             window.open(waUrl, '_blank');
             closeModalById('wa-notify-modal');
-            showToast("Membuka WhatsApp... Pilih grup plesiran mts untuk mengirim pesan.", "success");
+            showToast(`Membuka WhatsApp... Pilih grup ${getWAGroupName()} untuk mengirim pesan.`, "success");
         }
 
         function copyWAMessageText() {
@@ -5096,6 +5766,17 @@ _Mohon dicatat & direkap ke pembukuan kas/manifest. Terima kasih._`;
         // ============================================================
         window.onload = async () => {
             initOperatorSession();
+            
+            // Inisialisasi default nomor WA Bendahara (+62 857-4342-4187)
+            const currentBendaharaPhone = localStorage.getItem('wa_bendahara_phone');
+            if (!currentBendaharaPhone || currentBendaharaPhone.trim() === '') {
+                localStorage.setItem('wa_bendahara_phone', '+62 857-4342-4187');
+            }
+            const currentBendaharaName = localStorage.getItem('wa_bendahara_name');
+            if (!currentBendaharaName || currentBendaharaName.trim() === '' || currentBendaharaName === 'Bendahara Panitia' || currentBendaharaName === 'Grup WhatsApp Panitia') {
+                localStorage.setItem('wa_bendahara_name', 'Bendahara Ziarah');
+            }
+
             updateWASettingsUI();
             
             // Inisialisasi Supabase Cloud
