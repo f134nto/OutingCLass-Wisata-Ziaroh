@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Manajemen Ziarah Wisata & BIS</title>
+    <title>Sistem Manajemen Ziarah Wisata & Armada Bus</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1052,6 +1052,7 @@
                         <option value="XL">XL</option>
                         <option value="XXL">XXL</option>
                         <option value="XXXL">XXXL</option>
+                        <option value="Tidak Ikut">❌ Tidak Ikut (Batal / Tidak Pesan Kaos)</option>
                     </select>
                 </div>
                 
@@ -2729,6 +2730,9 @@
                 if (!newSize || newSize === '' || newSize === '-') {
                     syncSiswaTidakIkutEnforcement();
                     showToast(`Ukuran ${escapeHTML(item.name)} dikosongkan. Siswa otomatis masuk daftar Siswa Tidak Ikut.`, 'warning');
+                } else if (newSize === 'Tidak Ikut') {
+                    syncSiswaTidakIkutEnforcement();
+                    showToast(`Status ${escapeHTML(item.name)} diatur ke TIDAK IKUT ziarah.`, 'info');
                 } else {
                     showToast(`Ukuran ${escapeHTML(item.name)} diatur ke ${newSize}. Siswa aktif mengikuti outing.`, 'success');
                 }
@@ -2765,10 +2769,14 @@
 
             let counts = { S: 0, M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0 };
             let unassigned = 0;
+            let tidakIkutCount = 0;
 
             list.forEach((item, index) => {
-                if (item.size && counts[item.size] !== undefined) {
-                    counts[item.size]++;
+                const s = item.size ? item.size.trim() : '';
+                if (s && counts[s] !== undefined) {
+                    counts[s]++;
+                } else if (s === 'Tidak Ikut' || s.toUpperCase() === 'TIDAK IKUT') {
+                    tidakIkutCount++;
                 } else {
                     unassigned++;
                 }
@@ -2776,35 +2784,52 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-indigo-50/30 transition-colors border-b border-slate-100';
 
-                // Size cell: Jika belum ada ukuran, tampilkan select dropdown untuk pilih cepat.
-                // Jika sudah ada ukuran, tampilkan badge ukuran + dropdown untuk ubah cepat.
+                // Size cell:
                 let sizeHTML = '';
-                if (item.size && validKaosSizes.includes(item.size)) {
+                if (s === 'Tidak Ikut' || s.toUpperCase() === 'TIDAK IKUT') {
                     sizeHTML = `
                         <div class="flex items-center justify-center gap-1.5">
-                            <span class="inline-block px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-black border border-indigo-200 text-xs min-w-[38px]">${item.size}</span>
-                            <select onchange="quickUpdateKaosSize('${item.id}', this.value)" title="Ubah Ukuran Cepat" class="text-[11px] font-semibold px-1.5 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-white outline-none cursor-pointer">
-                                <option value="${item.size}" selected>Ubah ▼</option>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 font-bold border border-rose-200 text-xs min-w-[38px]"><i class="fa-solid fa-circle-xmark text-rose-500"></i> Tidak Ikut</span>
+                            <select onchange="quickUpdateKaosSize('${item.id}', this.value)" title="Ubah Ukuran / Status Cepat" class="text-[11px] font-semibold px-1.5 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-white outline-none cursor-pointer">
+                                <option value="Tidak Ikut" selected>Ubah ▼</option>
+                                <option value="">⏳ Belum Diisi</option>
                                 <option value="S">S</option>
                                 <option value="M">M</option>
                                 <option value="L">L</option>
                                 <option value="XL">XL</option>
                                 <option value="XXL">XXL</option>
                                 <option value="XXXL">XXXL</option>
-                                <option value="">(Kosongkan)</option>
+                            </select>
+                        </div>
+                    `;
+                } else if (s && validKaosSizes.includes(s)) {
+                    sizeHTML = `
+                        <div class="flex items-center justify-center gap-1.5">
+                            <span class="inline-block px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-black border border-indigo-200 text-xs min-w-[38px]">${s}</span>
+                            <select onchange="quickUpdateKaosSize('${item.id}', this.value)" title="Ubah Ukuran Cepat" class="text-[11px] font-semibold px-1.5 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-white outline-none cursor-pointer">
+                                <option value="${s}" selected>Ubah ▼</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
+                                <option value="XXXL">XXXL</option>
+                                <option value="Tidak Ikut">❌ Tidak Ikut</option>
+                                <option value="">⏳ Belum Diisi</option>
                             </select>
                         </div>
                     `;
                 } else {
                     sizeHTML = `
                         <select onchange="quickUpdateKaosSize('${item.id}', this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs">
-                            <option value="" selected>⏳ Pilih Ukuran</option>
+                            <option value="" selected>⏳ Belum Diisi</option>
                             <option value="S">S</option>
                             <option value="M">M</option>
                             <option value="L">L</option>
                             <option value="XL">XL</option>
                             <option value="XXL">XXL</option>
                             <option value="XXXL">XXXL</option>
+                            <option value="Tidak Ikut" class="text-rose-600 font-bold">❌ Tidak Ikut</option>
                         </select>
                     `;
                 }
@@ -2839,6 +2864,7 @@
                 }
             });
 
+            let tidakIkutText = tidakIkutCount > 0 ? ` | <span class="text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 text-xs font-bold"><i class="fa-solid fa-circle-xmark mr-1 text-rose-500"></i>Tidak Ikut: <b>${tidakIkutCount}</b> Siswa</span>` : '';
             let unassignedText = unassigned > 0 ? ` | <span class="text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 text-xs">Belum Diisi: <b>${unassigned}</b> Siswa</span>` : '';
 
             tfoot.innerHTML = `
@@ -2851,6 +2877,7 @@
                         XL: <b>${counts.XL}</b> | 
                         XXL: <b>${counts.XXL}</b> | 
                         XXXL: <b>${counts.XXXL}</b>
+                        ${tidakIkutText}
                         ${unassignedText}
                     </td>
                 </tr>
@@ -2862,12 +2889,16 @@
             
             let counts = { S: 0, M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0 };
             let grandTotal = 0;
+            let grandTidakIkut = 0;
             let grandUnassigned = 0;
 
             kaosData.forEach(item => {
-                if (item.size && counts[item.size] !== undefined) {
-                    counts[item.size]++;
+                const s = item.size ? item.size.trim() : '';
+                if (s && counts[s] !== undefined) {
+                    counts[s]++;
                     grandTotal++;
+                } else if (s === 'Tidak Ikut' || s.toUpperCase() === 'TIDAK IKUT') {
+                    grandTidakIkut++;
                 } else {
                     grandUnassigned++;
                 }
@@ -2890,9 +2921,14 @@
                             <span class="block text-[10px] uppercase tracking-wider text-indigo-100 font-bold">Sudah Ukuran</span>
                             <span class="text-lg font-black text-white">${grandTotal}</span>
                         </div>
+                        ${grandTidakIkut > 0 ? `
+                        <div class="bg-rose-500/30 px-3.5 py-2 rounded-xl border border-rose-400/40">
+                            <span class="block text-[10px] uppercase tracking-wider text-rose-200 font-bold">Tidak Ikut</span>
+                            <span class="text-lg font-black text-rose-300">${grandTidakIkut}</span>
+                        </div>` : ''}
                         ${grandUnassigned > 0 ? `
                         <div class="bg-amber-500/30 px-3.5 py-2 rounded-xl border border-amber-400/40">
-                            <span class="block text-[10px] uppercase tracking-wider text-amber-200 font-bold">Belum Ukuran</span>
+                            <span class="block text-[10px] uppercase tracking-wider text-amber-200 font-bold">Belum Diisi</span>
                             <span class="text-lg font-black text-amber-300">${grandUnassigned}</span>
                         </div>` : ''}
                     </div>
@@ -2909,7 +2945,7 @@
                 </div>
                 
                 <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
-                    <table class="w-full text-left border-collapse min-w-[650px]">
+                    <table class="w-full text-left border-collapse min-w-[700px]">
                         <thead>
                             <tr class="bg-slate-900 text-white border-b border-slate-800 text-xs uppercase tracking-wider">
                                 <th class="py-3.5 px-4 font-bold w-24">Kelas</th>
@@ -2919,6 +2955,7 @@
                                 <th class="py-3.5 px-4 font-bold text-center">XL</th>
                                 <th class="py-3.5 px-4 font-bold text-center">XXL</th>
                                 <th class="py-3.5 px-4 font-bold text-center">XXXL</th>
+                                <th class="py-3.5 px-4 font-bold text-center text-rose-300">Tidak Ikut</th>
                                 <th class="py-3.5 px-4 font-bold text-center text-amber-300">Belum Diisi</th>
                                 <th class="py-3.5 px-4 font-bold text-center bg-slate-950">Total Siswa</th>
                             </tr>
@@ -2927,9 +2964,12 @@
                             ${kaosClasses.map(cls => {
                                 const clsData = kaosData.filter(d => d.className === cls);
                                 let c = { S: 0, M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0 };
+                                let ti = 0;
                                 let un = 0;
                                 clsData.forEach(item => { 
-                                    if(item.size && c[item.size] !== undefined) c[item.size]++; 
+                                    const s = item.size ? item.size.trim() : '';
+                                    if(s && c[s] !== undefined) c[s]++; 
+                                    else if(s === 'Tidak Ikut' || s.toUpperCase() === 'TIDAK IKUT') ti++;
                                     else un++;
                                 });
                                 const rowTotal = clsData.length;
@@ -2943,12 +2983,27 @@
                                         <td class="py-3 px-4 text-center font-semibold text-xs">${c.XL > 0 ? c.XL : '<span class="text-slate-300">-</span>'}</td>
                                         <td class="py-3 px-4 text-center font-semibold text-xs">${c.XXL > 0 ? c.XXL : '<span class="text-slate-300">-</span>'}</td>
                                         <td class="py-3 px-4 text-center font-semibold text-xs">${c.XXXL > 0 ? c.XXXL : '<span class="text-slate-300">-</span>'}</td>
+                                        <td class="py-3 px-4 text-center font-bold text-xs ${ti > 0 ? 'text-rose-600 bg-rose-50/50' : 'text-slate-300'}">${ti > 0 ? ti : '-'}</td>
                                         <td class="py-3 px-4 text-center font-bold text-xs ${un > 0 ? 'text-amber-600 bg-amber-50/50' : 'text-slate-300'}">${un > 0 ? un : '-'}</td>
                                         <td class="py-3 px-4 text-center font-black text-indigo-700 bg-indigo-50/40 border-l border-slate-100">${rowTotal}</td>
                                     </tr>
                                 `;
                             }).join('')}
                         </tbody>
+                        <tfoot class="bg-slate-900 text-white font-bold border-t-2 border-slate-700 text-xs">
+                            <tr>
+                                <td class="py-3.5 px-4 uppercase tracking-wider font-extrabold text-slate-200">TOTAL SEMUA:</td>
+                                <td class="py-3.5 px-4 text-center text-indigo-200 font-extrabold">${counts.S}</td>
+                                <td class="py-3.5 px-4 text-center text-indigo-200 font-extrabold">${counts.M}</td>
+                                <td class="py-3.5 px-4 text-center text-indigo-200 font-extrabold">${counts.L}</td>
+                                <td class="py-3.5 px-4 text-center text-indigo-200 font-extrabold">${counts.XL}</td>
+                                <td class="py-3.5 px-4 text-center text-indigo-200 font-extrabold">${counts.XXL}</td>
+                                <td class="py-3.5 px-4 text-center text-indigo-200 font-extrabold">${counts.XXXL}</td>
+                                <td class="py-3.5 px-4 text-center text-rose-400 font-black text-sm">${grandTidakIkut}</td>
+                                <td class="py-3.5 px-4 text-center text-amber-400 font-black text-sm">${grandUnassigned}</td>
+                                <td class="py-3.5 px-4 text-center text-emerald-400 font-black text-sm bg-slate-950">${kaosData.length}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             `;
